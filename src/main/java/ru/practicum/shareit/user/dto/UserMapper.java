@@ -1,7 +1,6 @@
 package ru.practicum.shareit.user.dto;
 
 import ru.practicum.shareit.user.User;
-import ru.practicum.shareit.user.dto.UserDto;
 
 import javax.validation.constraints.NotNull;
 

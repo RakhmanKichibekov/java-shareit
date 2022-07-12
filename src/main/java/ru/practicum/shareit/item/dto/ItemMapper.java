@@ -2,7 +2,6 @@ package ru.practicum.shareit.item.dto;
 
 import lombok.AllArgsConstructor;
 import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.requests.ItemRequest;
 
 import javax.validation.constraints.NotNull;
 
