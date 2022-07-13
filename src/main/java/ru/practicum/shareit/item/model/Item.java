@@ -1,9 +1,5 @@
 package ru.practicum.shareit.item.model;
 
-/**
- * // TODO .
- */
-
 import lombok.Data;
 
 import javax.validation.constraints.NotBlank;

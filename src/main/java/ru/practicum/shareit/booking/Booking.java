@@ -1,8 +1,5 @@
 package ru.practicum.shareit.booking;
 
-/**
- * // TODO .
- */
 import lombok.Data;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.User;
@@ -16,5 +13,5 @@ public class Booking {
     private LocalDate end;
     private Item item;
     private User booker;
-    private STATUS status;
+    private Status status;
 }

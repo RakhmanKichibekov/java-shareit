@@ -1,9 +1,5 @@
 package ru.practicum.shareit.requests;
 
-/**
- * // TODO .
- */
-
 import lombok.Data;
 
 import java.time.LocalDate;

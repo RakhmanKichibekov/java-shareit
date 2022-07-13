@@ -26,10 +26,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public List<ItemDto> findAllByUserId(Integer userId) {
-        if (userService.findById(userId) == null) {
-            log.warn("Пользователь с идентификатором {} не найден.", userId);
-            throw new UserNotFoundException("Пользователь с id " + userId + " не найден");
-        }
+        validateId(userId);
         List<ItemDto> list = new ArrayList<>();
         for (Item item : itemRepository.findAllByUserId(userId)) {
             list.add(ItemMapper.toItemDto(item));
@@ -59,28 +56,14 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public ItemDto add(Integer userId, ItemDto itemDto) {
-        if (userService.findById(userId) == null) {
-            log.warn("Пользователь с идентификатором {} не найден.", userId);
-            throw new UserNotFoundException("Пользователь с id " + userId + " не найден");
-        }
+        validateId(userId);
         itemDto.setOwner(userId);
         return ItemMapper.toItemDto(itemRepository.add(ItemMapper.toItem(itemDto)));
     }
 
     @Override
     public ItemDto change(Integer userId, Integer itemId, ItemDto itemDto) {
-        if (userService.findById(userId) == null) {
-            log.warn("Пользователь с идентификатором {} не найден.", userId);
-            throw new UserNotFoundException("Пользователь с id " + userId + " не найден");
-        }
-        if (!itemRepository.getRepository().containsKey(itemId)) {
-            log.warn("Вещь с идентификатором {} не найдена.", itemId);
-            throw new ItemNotFoundException("Вещь с id " + itemId + " не найдена.");
-        }
-        if (!userId.equals(findById(itemId).getOwner())) {
-            log.warn("Редактирование вещи с id {} пользователем с id {}", itemId, userId);
-            throw new AccessIsDeniedException("Недостаточно прав для выполнения операции.");
-        }
+        validate(userId, itemId);
         ItemDto oldItem = ItemMapper.toItemDto(itemRepository.getRepository().get(itemId));
         itemDto.setId(itemId);
         itemDto.setOwner(oldItem.getOwner());
@@ -98,6 +81,11 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public ItemDto deleteById(Integer userId, Integer id) {
+        validate(userId, id);
+        return ItemMapper.toItemDto(itemRepository.deleteById(id));
+    }
+
+    private void validate(Integer userId, Integer id) {
         if (userService.findById(userId) == null) {
             log.warn("Пользователь с идентификатором {} не найден.", userId);
             throw new UserNotFoundException("Пользователь с id " + userId + " не найден");
@@ -110,6 +98,12 @@ public class ItemServiceImpl implements ItemService {
             log.warn("Редактирование вещи с id {} пользователем с id {}", id, userId);
             throw new AccessIsDeniedException("Недостаточно прав для выполнения операции.");
         }
-        return ItemMapper.toItemDto(itemRepository.deleteById(id));
+    }
+
+    private void validateId(Integer userId) {
+        if (userService.findById(userId) == null) {
+            log.warn("Пользователь с идентификатором {} не найден.", userId);
+            throw new UserNotFoundException("Пользователь с id " + userId + " не найден");
+        }
     }
 }

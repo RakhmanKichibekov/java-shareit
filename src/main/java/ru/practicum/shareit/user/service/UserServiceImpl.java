@@ -31,10 +31,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto findById(Integer id) {
-        if (!userRepository.getRepository().containsKey(id)) {
-            log.warn("Пользователь с идентификатором {} не найден.", id);
-            throw new UserNotFoundException("Пользователь с id " + id + " не найден");
-        }
+        validateId(id);
         return UserMapper.toUserDto(userRepository.findById(id));
     }
 
@@ -46,10 +43,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto change(Integer id, UserDto userDto) {
-        if (!userRepository.getRepository().containsKey(id)) {
-            log.warn("Пользователь с идентификатором {} не найден.", id);
-            throw new UserNotFoundException("Пользователь с id " + id + " не найден");
-        }
+        validateId(id);
         validateEmail(userDto);
         userDto.setId(id);
         User oldUser = userRepository.getRepository().get(id);
@@ -77,6 +71,13 @@ public class UserServiceImpl implements UserService {
                 log.warn("Дубликат email");
                 throw new UserValidationException("Пользователь с " + userDto.getEmail() + " уже существует");
             }
+        }
+    }
+
+    private void validateId(Integer id) {
+        if (!userRepository.getRepository().containsKey(id)) {
+            log.warn("Пользователь с идентификатором {} не найден.", id);
+            throw new UserNotFoundException("Пользователь с id " + id + " не найден");
         }
     }
 }
