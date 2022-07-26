@@ -14,6 +14,7 @@ import ru.practicum.shareit.user.service.UserService;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Slf4j
@@ -83,6 +84,16 @@ public class ItemServiceImpl implements ItemService {
     public ItemDto deleteById(Integer userId, Integer id) {
         validate(userId, id);
         return ItemMapper.toItemDto(itemRepository.deleteById(id));
+    }
+
+    @Override
+    public Item findItemOrException(Integer id) {
+        Optional<Item> item = Optional.ofNullable(itemRepository.findById(id));
+        if (item.isEmpty()) {
+            throw new ItemNotFoundException("Вещь с id " + id + " не найдена.");
+        } else {
+            return item.get();
+        }
     }
 
     private void validate(Integer userId, Integer id) {

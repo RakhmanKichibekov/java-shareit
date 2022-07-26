@@ -1,6 +1,7 @@
 package ru.practicum.shareit.item.service;
 
 import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.model.Item;
 
 import java.util.List;
 
@@ -17,4 +18,7 @@ public interface ItemService {
     ItemDto change(Integer userId, Integer itemId, ItemDto itemDto);
 
     ItemDto deleteById(Integer userId, Integer id);
+
+    Item findItemOrException(Integer id);
+
 }
