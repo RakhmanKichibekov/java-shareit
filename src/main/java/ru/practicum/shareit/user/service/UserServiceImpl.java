@@ -12,6 +12,7 @@ import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -63,6 +64,16 @@ public class UserServiceImpl implements UserService {
             throw new UserNotFoundException("Пользователь с id " + id + " не найден");
         }
         return UserMapper.toUserDto(userRepository.deleteById(id));
+    }
+
+    @Override
+    public User findUserOrException(Integer id) {
+        Optional<User> user = Optional.ofNullable(userRepository.findById(id));
+        if (user.isEmpty()) {
+            throw new UserNotFoundException("Пользователь с id " + id + " не найден.");
+        } else {
+            return user.get();
+        }
     }
 
     private void validateEmail(UserDto userDto) {
