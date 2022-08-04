@@ -13,18 +13,18 @@ public class ItemRequestMapper {
         return new ItemRequestDto(
                 itemRequest.getId(),
                 itemRequest.getDescription(),
-                itemRequest.getRequestor(),
-                itemRequest.getCreated()
+                new ItemRequestDto.User(
+                        itemRequest.getRequester().getId(),
+                        itemRequest.getRequester().getName()),
+                itemRequest.getCreated());
 
-        );
     }
 
-    public static ItemRequest toItemRequest(@NotNull ItemRequestDto itemRequestDto) {
+    public static ItemRequest toItemRequest(@NotNull ItemRequestDto requestDto) {
         return new ItemRequest(
-                itemRequestDto.getId(),
-                itemRequestDto.getDescription(),
-                itemRequestDto.getRequestor(),
-                itemRequestDto.getCreated()
-        );
+                requestDto.getId(),
+                requestDto.getDescription(),
+                null,
+                requestDto.getCreated());
     }
 }

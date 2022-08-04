@@ -247,9 +247,9 @@
 			</reporting>
 			-->
 		</profile>
+		<!--
 		<profile>
 			<id>coverage</id>
-			<!--
 			<build>
 				<plugins>
 					<plugin>
@@ -257,9 +257,9 @@
 						<artifactId>jacoco-maven-plugin</artifactId>
 					</plugin>
 				</plugins>
-			</build>
-			-->
+			</build>В
 		</profile>
+		-->
 	</profiles>
 
 </project>

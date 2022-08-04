@@ -117,5 +117,4 @@ public interface BookingRepository extends JpaRepository<Booking, Integer> {
             nativeQuery = true)
     Booking getNextBooking(Integer itemId, LocalDateTime localDateTime);
 
-
 }

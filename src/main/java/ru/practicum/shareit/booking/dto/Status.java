@@ -15,6 +15,4 @@ public enum Status {
             return CANCELED;
         } else return REJECTED;
     }
-
-
 }

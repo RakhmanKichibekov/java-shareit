@@ -34,7 +34,7 @@ public class BookingServiceImpl implements BookingService {
         log.info("Добавление бронирования вещи с id {} пользователем c id {}.", bookingDto.getItemId(), userId);
         User user = UserMapper.toUser(userService.findById(userId));
         Item item = itemService.findItemOrException(bookingDto.getItemId());
-        if (user.getId().equals(item.getOwner())) {
+        if (user.getId().equals(item.getOwner().getId())) {
             throw new AccessIsDeniedException("Владелец вещи не может быть ее арендатором.");
         }
         if (!item.getAvailable()) {
@@ -62,7 +62,7 @@ public class BookingServiceImpl implements BookingService {
         Booking booking = findBookingOrException(bookingId);
         User user = userService.findUserOrException(userId);
         Item item = itemService.findItemOrException(booking.getItem().getId());
-        if (!item.getOwner().equals(user.getId())) {
+        if (!item.getOwner().getId().equals(user.getId())) {
             throw new AccessIsDeniedException("Недостаточно прав для выполнения операции.");
         }
         if (booking.getIsApproved() && !booking.getIsCanceled() && approved) {
@@ -84,7 +84,7 @@ public class BookingServiceImpl implements BookingService {
         Booking booking = findBookingOrException(bookingId);
         User user = userService.findUserOrException(userId);
         if (!booking.getBooker().getId().equals(user.getId())) {
-            if (!booking.getItem().getOwner().equals(user.getId())) {
+            if (!booking.getItem().getOwner().getId().equals(user.getId())) {
                 throw new AccessIsDeniedException("Недостаточно прав для выполнения операции.");
             }
         }
@@ -182,6 +182,4 @@ public class BookingServiceImpl implements BookingService {
             return booking.get();
         }
     }
-
-
 }
