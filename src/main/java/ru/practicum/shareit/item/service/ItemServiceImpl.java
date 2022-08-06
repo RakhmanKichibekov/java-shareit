@@ -144,11 +144,7 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public Item findItemOrException(Integer id) {
         Optional<Item> item = itemRepository.findById(id);
-        if (item.isEmpty()) {
-            throw new ItemNotFoundException("Вещь с id " + id + " не найдена.");
-        } else {
-            return item.get();
-        }
+        return item.orElseThrow(() -> new ItemNotFoundException("Вещь с id " + id + " не найдена."));
     }
 
     private void addBookings(ItemDto itemDto) {

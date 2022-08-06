@@ -176,10 +176,6 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public Booking findBookingOrException(Integer id) {
         Optional<Booking> booking = bookingRepository.findById(id);
-        if (booking.isEmpty()) {
-            throw new BookingNotFoundException("Бронирование с id " + id + " не найдено.");
-        } else {
-            return booking.get();
-        }
+        return booking.orElseThrow(() -> new BookingNotFoundException("Бронирование с id " + id + " не найдено."));
     }
 }

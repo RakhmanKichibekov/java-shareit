@@ -69,11 +69,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public User findUserOrException(Integer id) {
         Optional<User> user = Optional.ofNullable(userRepository.findById(id));
-        if (user.isEmpty()) {
-            throw new UserNotFoundException("Пользователь с id " + id + " не найден.");
-        } else {
-            return user.get();
-        }
+        return user.orElseThrow(() -> new UserNotFoundException("Пользователь с id " + id + " не найден."));
     }
 
     private void validateEmail(UserDto userDto) {
