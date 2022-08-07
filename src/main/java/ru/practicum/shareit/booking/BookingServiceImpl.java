@@ -34,19 +34,7 @@ public class BookingServiceImpl implements BookingService {
         log.info("Добавление бронирования вещи с id {} пользователем c id {}.", bookingDto.getItemId(), userId);
         User user = UserMapper.toUser(userService.findById(userId));
         Item item = itemService.findItemOrException(bookingDto.getItemId());
-        if (user.getId().equals(item.getOwner().getId())) {
-            throw new AccessIsDeniedException("Владелец вещи не может быть ее арендатором.");
-        }
-        if (!item.getAvailable()) {
-            throw new ItemNotAvailableException("Вещь с id " + item + " не доступна для бронирования.");
-        }
-        if (bookingDto.getStart().isAfter(bookingDto.getEnd()) || bookingDto.getStart().equals(bookingDto.getEnd())) {
-            throw new BookingValidateException("Неверно указан период бронирования.");
-        }
-        if (bookingDto.getStart().isBefore(LocalDateTime.now())
-                || bookingDto.getEnd().isBefore(LocalDateTime.now())) {
-            throw new BookingValidateException("Неверно указан период бронирования.");
-        }
+        validation(user, item, bookingDto);
         Booking booking = BookingMapper.toBooking(bookingDto);
         booking.setItem(item);
         booking.setBooker(user);
@@ -62,19 +50,7 @@ public class BookingServiceImpl implements BookingService {
         Booking booking = findBookingOrException(bookingId);
         User user = userService.findUserOrException(userId);
         Item item = itemService.findItemOrException(booking.getItem().getId());
-        if (!item.getOwner().getId().equals(user.getId())) {
-            throw new AccessIsDeniedException("Недостаточно прав для выполнения операции.");
-        }
-        if (booking.getIsApproved() && !booking.getIsCanceled() && approved) {
-            throw new BookingValidateException("Статус 'Подтвержден' уже установлен.");
-        }
-        if (approved) {
-            booking.setIsApproved(true);
-            booking.setIsCanceled(false);
-        } else {
-            booking.setIsApproved(true);
-            booking.setIsCanceled(true);
-        }
+        validationApprove(item, user, booking, approved);
         return BookingMapper.toBookingDto(bookingRepository.save(booking));
     }
 
@@ -95,47 +71,39 @@ public class BookingServiceImpl implements BookingService {
     public List<BookingDto> findByBooker(Integer userId, State state) {
         log.info("Получить список бронирований пользователя с id {}.", userId);
         userService.findUserOrException(userId);
-        switch (state) {
-            case ALL:
-                return bookingRepository.findAllByBookerId(userId).stream()
-                        .map(BookingMapper::toBookingDto)
-                        .collect(Collectors.toList());
-            case CURRENT:
-                return bookingRepository.findCurrentByBooker(userId, LocalDateTime.now())
-                        .stream()
-                        .map(BookingMapper::toBookingDto)
-                        .collect(Collectors.toList());
-            case PAST:
-                return bookingRepository.findPastByBooker(userId, LocalDateTime.now())
-                        .stream()
-                        .map(BookingMapper::toBookingDto)
-                        .collect(Collectors.toList());
-            case FUTURE:
-                return bookingRepository.findFutureByBooker(userId, LocalDateTime.now())
-                        .stream()
-                        .map(BookingMapper::toBookingDto)
-                        .collect(Collectors.toList());
-            case WAITING:
-                return bookingRepository.findWaitingOrRejectedByBooker(userId,
-                                false, false)
-                        .stream()
-                        .map(BookingMapper::toBookingDto)
-                        .collect(Collectors.toList());
-            case REJECTED:
-                return bookingRepository.findWaitingOrRejectedByBooker(userId,
-                                true, true)
-                        .stream()
-                        .map(BookingMapper::toBookingDto)
-                        .collect(Collectors.toList());
-            default:
-                return List.of();
-        }
+        return switchState(userId, state);
     }
 
     @Override
     public List<BookingDto> findByOwner(Integer userId, State state) {
         userService.findUserOrException(userId);
         log.info("Получить список бронирований пользователя-владельца с id {}", userId);
+        return switchState(userId, state);
+    }
+
+    @Override
+    public Booking findBookingOrException(Integer id) {
+        Optional<Booking> booking = bookingRepository.findById(id);
+        return booking.orElseThrow(() -> new BookingNotFoundException("Бронирование с id " + id + " не найдено."));
+    }
+
+    private void validation(User user, Item item, BookingDto bookingDto) {
+        if (user.getId().equals(item.getOwner().getId())) {
+            throw new AccessIsDeniedException("Владелец вещи не может быть ее арендатором.");
+        }
+        if (!item.getAvailable()) {
+            throw new ItemNotAvailableException("Вещь с id " + item + " не доступна для бронирования.");
+        }
+        if (bookingDto.getStart().isAfter(bookingDto.getEnd()) || bookingDto.getStart().equals(bookingDto.getEnd())) {
+            throw new BookingValidateException("Неверно указан период бронирования.");
+        }
+        if (bookingDto.getStart().isBefore(LocalDateTime.now())
+                || bookingDto.getEnd().isBefore(LocalDateTime.now())) {
+            throw new BookingValidateException("Неверно указан период бронирования.");
+        }
+    }
+
+    private List<BookingDto> switchState(Integer userId, State state) {
         switch (state) {
             case ALL:
                 return bookingRepository.findAllByOwnerId(userId).stream()
@@ -173,9 +141,19 @@ public class BookingServiceImpl implements BookingService {
         }
     }
 
-    @Override
-    public Booking findBookingOrException(Integer id) {
-        Optional<Booking> booking = bookingRepository.findById(id);
-        return booking.orElseThrow(() -> new BookingNotFoundException("Бронирование с id " + id + " не найдено."));
+    private void validationApprove(Item item, User user, Booking booking, Boolean approved) {
+        if (!item.getOwner().getId().equals(user.getId())) {
+            throw new AccessIsDeniedException("Недостаточно прав для выполнения операции.");
+        }
+        if (booking.getIsApproved() && !booking.getIsCanceled() && approved) {
+            throw new BookingValidateException("Статус 'Подтвержден' уже установлен.");
+        }
+        if (approved) {
+            booking.setIsApproved(true);
+            booking.setIsCanceled(false);
+        } else {
+            booking.setIsApproved(true);
+            booking.setIsCanceled(true);
+        }
     }
 }
