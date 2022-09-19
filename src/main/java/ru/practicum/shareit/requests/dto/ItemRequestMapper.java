@@ -1,30 +1,30 @@
 package ru.practicum.shareit.requests.dto;
-
-import lombok.AllArgsConstructor;
 import ru.practicum.shareit.requests.ItemRequest;
 
-import javax.validation.constraints.NotNull;
+import java.util.ArrayList;
+import java.util.List;
 
-@AllArgsConstructor
 public class ItemRequestMapper {
 
-
-    public static ItemRequestDto toItemRequestDto(@NotNull ItemRequest itemRequest) {
+    public static ItemRequestDto toItemRequestDto(ItemRequest itemRequest) {
         return new ItemRequestDto(
                 itemRequest.getId(),
                 itemRequest.getDescription(),
-                new ItemRequestDto.User(
-                        itemRequest.getRequester().getId(),
-                        itemRequest.getRequester().getName()),
-                itemRequest.getCreated());
-
+                itemRequest.getRequestor(),
+                itemRequest.getCreated()
+        );
     }
 
-    public static ItemRequest toItemRequest(@NotNull ItemRequestDto requestDto) {
+    public static ItemRequest toItemRequest(ItemRequestDto itemRequestDto) {
         return new ItemRequest(
-                requestDto.getId(),
-                requestDto.getDescription(),
-                null,
-                requestDto.getCreated());
+                itemRequestDto.getDescription());
     }
+    public static List<ItemRequestDto> toListItemRequestDto(List<ItemRequest> listItemRequest) {
+        List<ItemRequestDto> listDto = new ArrayList<>();
+        for (ItemRequest itemRequest : listItemRequest) {
+            listDto.add(toItemRequestDto(itemRequest));
+        }
+        return listDto;
+    }
+
 }

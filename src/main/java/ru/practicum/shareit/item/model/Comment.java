@@ -10,27 +10,30 @@ import ru.practicum.shareit.user.User;
 import javax.persistence.*;
 import java.time.LocalDateTime;
 
-@Getter
-@Setter
-@AllArgsConstructor
-@NoArgsConstructor
+
 @Entity
 @Table(name = "comments")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class Comment {
+    public Comment (String text) {
+        this.text = text;
+    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
-    @Column(name = "text")
+    private Long id;
+    @Column(name = "text_comment")
     private String text;
-    @ManyToOne()
-    @JoinColumn(name = "item_id")
+    @ManyToOne(fetch=FetchType.EAGER,
+            cascade=CascadeType.ALL)
+    @JoinColumn(name="item_id")
     private Item item;
-    @ManyToOne()
-    @JoinColumn(name = "author_id")
+    @OneToOne(fetch=FetchType.EAGER,
+            cascade=CascadeType.ALL)
+    @JoinColumn(name="author_id")
     private User author;
-    @Column(name = "created")
     private LocalDateTime created;
-
-
 }

@@ -1,90 +1,85 @@
 package ru.practicum.shareit.user.service;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ru.practicum.shareit.user.*;
+import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.dto.UserMapper;
-import ru.practicum.shareit.user.exception.UserNotFoundException;
-import ru.practicum.shareit.user.exception.UserValidationException;
+import ru.practicum.shareit.user.exception.ConflictException;
 import ru.practicum.shareit.user.repository.UserRepository;
 
-import java.util.ArrayList;
+import javax.validation.ValidationException;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
-
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
-    private final UserRepository userRepository;
+    private UserRepository userRepository;
+    @Autowired
+    public UserServiceImpl(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
 
-    @Override
-    public List<UserDto> findAll() {
-        List<UserDto> list = new ArrayList<>();
-        for (User user : userRepository.findAll()) {
-            list.add(UserMapper.toUserDto(user));
+    public List<UserDto> findAllUser() {
+        List<User> list = userRepository.findAll();
+        log.info("Текущее количество пользователей в списке: {}", list.size());
+        return UserMapper.toListUserDto(list);
+    }
+
+    public UserDto findUserById(Optional<Long> id) {
+        if (id.isPresent()) {
+            User user = userRepository.findById(id.get()).get();
+            log.info("Пользователь по id запросу: {}", user.getName());
+            return UserMapper.toUserDto(user);
         }
-        return list;
+        throw new NoSuchElementException("Не правильно задан id пользователя! findUserById()");
     }
 
-    @Override
-    public UserDto findById(Integer id) {
-        validateId(id);
-        return UserMapper.toUserDto(userRepository.findById(id));
-    }
-
-    @Override
-    public UserDto add(UserDto userDto) {
-        validateEmail(userDto);
-        return UserMapper.toUserDto(userRepository.add(UserMapper.toUser(userDto)));
-    }
-
-    @Override
-    public UserDto change(Integer id, UserDto userDto) {
-        validateId(id);
-        validateEmail(userDto);
-        userDto.setId(id);
-        User oldUser = userRepository.getRepository().get(id);
-        if (userDto.getName() == null) {
-            userDto.setName(oldUser.getName());
+    public UserDto deleteUser(Optional<Long> id){
+        if (id.isPresent()) {
+            User user = userRepository.findById(id.get()).get();
+            userRepository.delete(user);
+            log.info("Пользователь: {} удален.", user);
+            return UserMapper.toUserDto(user);
         }
-        if (userDto.getEmail() == null) {
-            userDto.setEmail(oldUser.getEmail());
+        throw new NoSuchElementException("Переменные пути указаны не верно! deleteUser()");
+    }
+
+    public UserDto createUser(UserDto userDto) throws ValidationException, ConflictException {
+        User user = UserMapper.toUser(userDto);
+        if (validationUser(user)) {
+            userRepository.save(user);
+            log.info("Добавлен пользователь: {}", user.getName());
+            return UserMapper.toUserDto(user);
         }
-        return UserMapper.toUserDto(userRepository.change(UserMapper.toUser(userDto)));
+        throw new ValidationException("Пользователь на создан! createUser()");
     }
 
-    @Override
-    public UserDto deleteById(Integer id) {
-        if (!userRepository.getRepository().containsKey(id)) {
-            log.warn("Пользователь с идентификатором {} не найден.", id);
-            throw new UserNotFoundException("Пользователь с id " + id + " не найден");
-        }
-        return UserMapper.toUserDto(userRepository.deleteById(id));
+    public UserDto patchUser(UserDto userDto, Optional<Long> id) throws ValidationException, ConflictException {
+        User user = UserMapper.toUser(userDto);
+        if (!id.isPresent())
+            throw new NoSuchElementException("Отсутствует id пользователя! patchUser()");
+        user.setId(id.get());
+        if (user.getName() == null)
+            user.setName(userRepository.findById(id.get()).get().getName());
+        if (user.getEmail() == null)
+            user.setEmail(userRepository.findById(id.get()).get().getEmail());
+        userRepository.save(user);
+        log.info("Данные пользователя: {} изменены.", user.getName());
+        return UserMapper.toUserDto(user);
     }
 
-    @Override
-    public User findUserOrException(Integer id) {
-        Optional<User> user = Optional.ofNullable(userRepository.findById(id));
-        return user.orElseThrow(() -> new UserNotFoundException("Пользователь с id " + id + " не найден."));
-    }
-
-    private void validateEmail(UserDto userDto) {
-        for (User u : userRepository.getRepository().values()) {
-            if (u.getEmail().equals(userDto.getEmail()) && !u.getId().equals(userDto.getId())) {
-                log.warn("Дубликат email");
-                throw new UserValidationException("Пользователь с " + userDto.getEmail() + " уже существует");
+    public boolean validationUser(User user) throws ValidationException, ConflictException {
+        if (user.getName() != null && user.getName() != "") {
+            for (char ch : user.getName().toCharArray()) {
+                if (ch == ' ') {
+                    throw new ValidationException("Имя не может содержать символ пробела! validationUser()");
+                }
             }
         }
-    }
-
-    private void validateId(Integer id) {
-        if (!userRepository.getRepository().containsKey(id)) {
-            log.warn("Пользователь с идентификатором {} не найден.", id);
-            throw new UserNotFoundException("Пользователь с id " + id + " не найден");
-        }
+        return true;
     }
 }

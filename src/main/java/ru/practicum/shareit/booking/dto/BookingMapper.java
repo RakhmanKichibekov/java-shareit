@@ -2,33 +2,49 @@ package ru.practicum.shareit.booking.dto;
 
 import ru.practicum.shareit.booking.Booking;
 
-import javax.validation.constraints.NotNull;
+import java.util.ArrayList;
+import java.util.List;
 
 public class BookingMapper {
+    public static BookingDtoOut toBookingDto(Booking booking) {
+        return new BookingDtoOut(
+                booking.getId(),
+                booking.getStart(),
+                booking.getEnd(),
+                booking.getStatus(),
+                booking.getBooker(),
+                booking.getItem()
 
-
-    public static Booking toBooking(@NotNull BookingDto bookingDto) {
-        return new Booking(bookingDto.getId(),
-                bookingDto.getStart(),
-                bookingDto.getEnd(),
-                null,
-                null,
-                false,
-                false
         );
     }
 
-    public static BookingDto toBookingDto(@NotNull Booking booking) {
-        return new BookingDto(booking.getId(),
+    public static BookingDtoById toBookingDtoById(Booking booking) {
+        return new BookingDtoById (
+                booking.getId()
+        );
+    }
+    public static BookingDtoById toBookingDtoByIdTime(Booking booking) {
+        return new BookingDtoById (
+                booking.getId(),
+                booking.getBooker().getId(),
                 booking.getStart(),
-                booking.getEnd(),
-                new BookingDto.Item(booking.getItem().getId(),
-                        booking.getItem().getName()),
-                new BookingDto.User(booking.getBooker().getId(),
-                        booking.getBooker().getName()),
-                booking.getItem().getId(),
-                Status.getActualStatus(booking.getIsApproved(), booking.getIsCanceled()));
+                booking.getEnd()
+        );
+    }
 
+    public static Booking toBooking(BookingDtoIn bookingDtoIn) {
+        return new Booking (
+                bookingDtoIn.getStart(),
+                bookingDtoIn.getEnd()
+        );
+    }
+
+    public static List<BookingDtoOut> toListBookingDto (List<Booking> listBooking) {
+        List<BookingDtoOut> listDto = new ArrayList<>();
+        for (Booking booking : listBooking) {
+            listDto.add(toBookingDto(booking));
+        }
+        return listDto;
     }
 
 }

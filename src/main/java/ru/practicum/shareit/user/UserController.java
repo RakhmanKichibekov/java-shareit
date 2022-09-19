@@ -1,52 +1,53 @@
 package ru.practicum.shareit.user;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.user.dto.UserDto;
+import ru.practicum.shareit.user.exception.ConflictException;
 import ru.practicum.shareit.user.service.UserService;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
+import javax.validation.ValidationException;
 import java.util.List;
+import java.util.Optional;
 
-import static org.springframework.http.HttpStatus.CREATED;
-import static org.springframework.http.HttpStatus.OK;
-
-@Slf4j
-@RequiredArgsConstructor
 @RestController
 @RequestMapping(path = "/users")
 public class UserController {
+    private UserService userService;
 
-    private final UserService userService;
+    @Autowired
+    public UserController(UserService userService) {
+        this.userService = userService;
+    }
 
-    @GetMapping
-    @ResponseStatus(OK)
-    public List<UserDto> findAll() {
-        return userService.findAll();
+    @RequestMapping(value ="/",produces = "application/json")
+    public String getURLValue(HttpServletRequest request){
+        String test = request.getRequestURI();
+        return test;
+    }
+    @GetMapping()
+    protected List<UserDto> findAll() {
+        return userService.findAllUser();
     }
 
     @GetMapping("/{id}")
-    @ResponseStatus(OK)
-    public UserDto findById(@PathVariable(value = "id") Integer id) {
-        return userService.findById(id);
-    }
-
-    @PostMapping
-    @ResponseStatus(CREATED)
-    public UserDto add(@Valid @RequestBody UserDto userDto) {
-        return userService.add(userDto);
+    protected UserDto findUserById(@PathVariable Optional<Long> id) {
+        return userService.findUserById(id);
     }
 
     @PatchMapping("/{id}")
-    public UserDto change(@PathVariable(value = "id") Integer id, @RequestBody UserDto userDto) {
-        log.debug("Изменение пользователя : \n{}", userDto.getId());
-        return userService.change(id, userDto);
+    protected UserDto put(@PathVariable Optional<Long> id, @RequestBody UserDto userDto)
+            throws ValidationException, ConflictException {
+        return userService.patchUser(userDto, id);
     }
-
     @DeleteMapping("/{id}")
-    public UserDto deleteById(@PathVariable(value = "id") Integer id) {
-        log.debug("Удаление пользователя {}", id);
-        return userService.deleteById(id);
+    protected UserDto deleteUser(@PathVariable Optional<Long> id) {
+        return userService.deleteUser(id);
     }
 
+    @PostMapping()
+    protected UserDto create(@Valid @RequestBody UserDto userDto) throws ValidationException, ConflictException {
+        return userService.createUser(userDto);
+    }
 }

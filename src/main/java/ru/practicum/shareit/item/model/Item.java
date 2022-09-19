@@ -8,34 +8,34 @@ import ru.practicum.shareit.requests.ItemRequest;
 import ru.practicum.shareit.user.User;
 
 import javax.persistence.*;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
 
-@NoArgsConstructor
-@AllArgsConstructor
-@Getter
-@Setter
 @Entity
 @Table(name = "items")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class Item {
+    public Item (String name, String description, Boolean available){
+        this.name = name;
+        this.description = description;
+        this.available = available;
+    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
-    private Integer id;
-    @NotBlank
-    @Column(name = "name")
+    private Long id;
     private String name;
-    @NotBlank
-    @Column(name = "description")
     private String description;
-    @NotNull
-    @Column(name = "available")
+    @Column(name = "is_available", nullable = false)
     private Boolean available;
-    @ManyToOne()
-    @JoinColumn(name = "owner_id")
+    @ManyToOne(fetch=FetchType.EAGER,
+            cascade=CascadeType.ALL)
+    @JoinColumn(name="owner_id")
     private User owner;
-    @ManyToOne()
+    @ManyToOne(fetch = FetchType.EAGER,
+            cascade=CascadeType.ALL)
     @JoinColumn(name = "request_id")
     private ItemRequest request;
+
 }

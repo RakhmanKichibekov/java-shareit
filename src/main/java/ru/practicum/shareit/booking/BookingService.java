@@ -1,20 +1,27 @@
 package ru.practicum.shareit.booking;
 
-import ru.practicum.shareit.booking.dto.BookingDto;
+import ru.practicum.shareit.booking.dto.BookingDtoById;
+import ru.practicum.shareit.booking.dto.BookingDtoIn;
+import ru.practicum.shareit.booking.dto.BookingDtoOut;
+import ru.practicum.shareit.booking.exceptions.MessageFailedException;
 
+import javax.validation.ValidationException;
 import java.util.List;
+import java.util.Optional;
 
 public interface BookingService {
+    public BookingDtoById createBooking(Optional<Long> idUser, Optional<BookingDtoIn> bookingDtoIn)
+            throws ValidationException;
 
-    BookingDto add(Integer userId, BookingDto bookingDto);
+    BookingDtoOut patchStatusBooking(Optional<Long> idUser, Optional<Long> approved, Boolean bookingId) throws ValidationException;
 
-    BookingDto findById(Integer userId, Integer bookingId);
+    BookingDtoOut findBookingById(Optional<Long> idUser, Optional<Long> bookingId) throws ValidationException;
 
-    BookingDto approveBooking(Integer userId, Integer bookingId, Boolean approved);
+    List<BookingDtoOut> findBookingsState(Optional<Long> idUser, Optional<Integer> from, Optional<Integer> size, String state)
+            throws ValidationException, MessageFailedException;
 
-    List<BookingDto> findByBooker(Integer userId, State state);
+    List<BookingDtoOut> findBookingsOwnerState(Optional<Long> idUser, Optional<Integer> from, Optional<Integer> size, String state)
+            throws ValidationException, MessageFailedException;
 
-    List<BookingDto> findByOwner(Integer userId, State state);
-
-    Booking findBookingOrException(Integer id);
-} 
+    List<BookingDtoOut> findBookingsAllById(Optional<Long> userId) throws ValidationException;
+}
