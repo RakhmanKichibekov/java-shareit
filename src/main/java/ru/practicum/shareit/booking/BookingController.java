@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.dto.StatusDto;
+import ru.practicum.shareit.booking.service.BookingService;
 
 import javax.validation.Valid;
 import java.util.Collection;
