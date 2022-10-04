@@ -1,39 +1,27 @@
 package ru.practicum.shareit.item.model;
 
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import ru.practicum.shareit.user.User;
+import lombok.Data;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
 
-
+@Data
 @Entity
 @Table(name = "comments")
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
 public class Comment {
-    public Comment (String text) {
-        this.text = text;
-    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    @Column(name = "text_comment")
+    private Integer id;
+
     private String text;
-    @ManyToOne(fetch=FetchType.EAGER,
-            cascade=CascadeType.ALL)
-    @JoinColumn(name="item_id")
-    private Item item;
-    @OneToOne(fetch=FetchType.EAGER,
-            cascade=CascadeType.ALL)
-    @JoinColumn(name="author_id")
-    private User author;
-    private LocalDateTime created;
+
+    @Column(name = "item_id")
+    private Integer item;
+
+    @Column(name = "author_id")
+    private Integer author;
+
+    private LocalDateTime created = LocalDateTime.now();
 }

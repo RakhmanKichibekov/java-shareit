@@ -1,53 +1,56 @@
 package ru.practicum.shareit.user;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.shareit.user.dto.UserDto;
-import ru.practicum.shareit.user.exception.ConflictException;
-import ru.practicum.shareit.user.service.UserService;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
-import javax.validation.ValidationException;
-import java.util.List;
-import java.util.Optional;
+import java.util.ArrayList;
+import java.util.Collection;
 
 @RestController
 @RequestMapping(path = "/users")
 public class UserController {
-    private UserService userService;
+    private final UserService userServiceImpl;
 
-    @Autowired
-    public UserController(UserService userService) {
-        this.userService = userService;
-    }
+    private final UserMapper userMapper;
 
-    @RequestMapping(value ="/",produces = "application/json")
-    public String getURLValue(HttpServletRequest request){
-        String test = request.getRequestURI();
-        return test;
-    }
-    @GetMapping()
-    protected List<UserDto> findAll() {
-        return userService.findAllUser();
+    public UserController(UserService userServiceImpl, UserMapper userMapper) {
+        this.userServiceImpl = userServiceImpl;
+        this.userMapper = userMapper;
     }
 
     @GetMapping("/{id}")
-    protected UserDto findUserById(@PathVariable Optional<Long> id) {
-        return userService.findUserById(id);
+    public UserDto getById(@PathVariable Integer id) {
+        return userMapper.toDto(userServiceImpl.getById(id));
+    }
+
+    @GetMapping
+    public Collection<UserDto> getAll() {
+        ArrayList<UserDto> list = new ArrayList<>();
+        for (User user : userServiceImpl.getAll()) {
+            list.add(userMapper.toDto(user));
+        }
+        return list;
+    }
+
+    @PostMapping
+    public UserDto add(@Valid @RequestBody UserDto userDto) {
+        User user = userMapper.toUser(userDto);
+        return userMapper.toDto(userServiceImpl.add(user));
     }
 
     @PatchMapping("/{id}")
-    protected UserDto put(@PathVariable Optional<Long> id, @RequestBody UserDto userDto)
-            throws ValidationException, ConflictException {
-        return userService.patchUser(userDto, id);
-    }
-    @DeleteMapping("/{id}")
-    protected UserDto deleteUser(@PathVariable Optional<Long> id) {
-        return userService.deleteUser(id);
+    public UserDto update(@RequestBody UserDto userDto, @PathVariable Integer id) {
+        User user = userMapper.toUser(userDto);
+        return userMapper.toDto(userServiceImpl.update(user, id));
     }
 
-    @PostMapping()
-    protected UserDto create(@Valid @RequestBody UserDto userDto) throws ValidationException, ConflictException {
-        return userService.createUser(userDto);
+    @DeleteMapping("/{id}")
+    public void delete(@PathVariable Integer id) {
+        userServiceImpl.delete(id);
     }
+
+    @DeleteMapping
+    public void deleteAll() {
+        userServiceImpl.deleteAll();
+    }
+
 }

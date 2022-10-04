@@ -1,98 +1,81 @@
 package ru.practicum.shareit.requests;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import ru.practicum.shareit.item.dto.ItemMapper;
-import ru.practicum.shareit.item.repository.ItemRepository;
-import ru.practicum.shareit.requests.dto.ItemRequestDto;
-import ru.practicum.shareit.requests.dto.ItemRequestMapper;
+import org.springframework.web.server.ResponseStatusException;
+import ru.practicum.shareit.item.ItemRepository;
 import ru.practicum.shareit.user.User;
-import ru.practicum.shareit.user.repository.UserRepository;
+import ru.practicum.shareit.user.UserRepository;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.validation.ValidationException;
-import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
 
-@Slf4j
 @Service
-public class ItemRequestServiceImpl implements ItemRequestService{
+@Slf4j
+@RequiredArgsConstructor
+public class ItemRequestServiceImpl implements ItemRequestService {
 
-    private ItemRequestRepository itemRequestRepository;
-    private UserRepository userRepository;
-    private ItemRepository itemRepository;
-    @PersistenceContext
-    public EntityManager em;
+    private final ItemRequestRepository itemRequestRepository;
+    private final ItemRepository itemRepository;
 
-    @Autowired
-    public ItemRequestServiceImpl(ItemRequestRepository itemRequestRepository,
-                                  UserRepository userRepository, ItemRepository itemRepository){
-        this.itemRequestRepository = itemRequestRepository;
-        this.userRepository = userRepository;
-        this.itemRepository = itemRepository;
+    private final UserRepository userRepository;
+
+    private void checkUser(Integer userId) {
+        if (userRepository.findById(userId).isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        }
     }
 
-    public ItemRequestDto createItemRequest(Optional<Long> idUser, ItemRequestDto itemRequestDto) throws ValidationException {
-        User user = validationUser(idUser);
-        if (itemRequestDto.getDescription().isBlank())
-            throw new ValidationException ("Запрос указан как null! createItemRequest()");
-        ItemRequest itemRequest = ItemRequestMapper.toItemRequest(itemRequestDto);
+    @Override
+    public ItemRequest add(ItemRequest itemRequest) {
+        checkUser(itemRequest.getRequestor().getId());
+        User user = userRepository.findById(itemRequest.getRequestor().getId()).orElseThrow();
         itemRequest.setRequestor(user);
-        itemRequest.setCreated(LocalDateTime.now());
-        itemRequestRepository.save(itemRequest);
-        log.info("Создан запрос id: {}", itemRequest.getId());
-        return ItemRequestMapper.toItemRequestDto(itemRequest);
-    }
-    public User validationUser (Optional<Long> idUser) {
-        if (!idUser.isPresent()) throw new NoSuchElementException("Отсутствует id владельца! validationUser()");
-        Optional<User> user = userRepository.findById(idUser.get());
-        if (!user.isPresent())
-            throw new NoSuchElementException("Указанный пользователь не найден! validationUser()");
-        return user.get();
-    }
-    public List<ItemRequestDto> findAllItemRequest(Optional<Long> idUser) throws ValidationException {
-        User user = validationUser(idUser);
-        List<ItemRequestDto> list = ItemRequestMapper.toListItemRequestDto(
-                itemRequestRepository.findByRequestor_IdOrderByCreatedDesc(user.getId()));
-        for (ItemRequestDto itemRequestDto: list){
-            itemRequestDto.setItems(ItemMapper.toListItemDto(itemRepository.findByRequest_IdOrderByCreated(itemRequestDto.getId()).get()));
-        }
-        log.info("Получен список запросов пользователя: {}", user.getName());
-        return list;
+        log.info("добавлен request=/{}/", itemRequest);
+        return itemRequestRepository.save(itemRequest);
     }
 
-    public ItemRequestDto findItemRequestById (Optional<Long> idUser, Optional<Long> id) {
-        validationUser(idUser);
-        if (!id.isPresent())
-            throw new NoSuchElementException("Не правильно задан id запроса вещи! findItemRequestById()");
-        Optional<ItemRequest> itemRequest = itemRequestRepository.findById(id.get());
-        if (!itemRequest.isPresent())
-            throw new NoSuchElementException("Такого запроса вещи не существует! findItemRequestById()");
-        ItemRequestDto itemRequestDto = ItemRequestMapper.toItemRequestDto(itemRequest.get());
-        itemRequestDto.setItems(ItemMapper.toListItemDto(itemRepository.findByRequest_IdOrderByCreated(id.get()).get()));
-        log.info("Получен запрос на вещь id: {}", itemRequestDto.getId());
-        return itemRequestDto;
-    }
-    public List<ItemRequestDto> findItemRequestPageable (Optional<Long> idUser,
-                                                         Optional<Integer> from, Optional<Integer> size) throws ValidationException {
-        User user = validationUser(idUser);
-        if (!from.isPresent() || !size.isPresent()) return Collections.emptyList();
-        if (from.get() < 0 || size.get() <= 0)
-            throw new ValidationException("Параметры from, size заданы не верно! findItemRequestPageable()");
-        List<ItemRequest> requestList = em.createQuery("SELECT i FROM ItemRequest i "
-                        + "WHERE i.requestor.id <> ?1 ORDER BY i.created DESC", ItemRequest.class)
-                .setParameter(1, idUser.get())
-                .setFirstResult(from.get())
-                .setMaxResults(size.get())
-                .getResultList();
-        List<ItemRequestDto> itemRequestDtoList = ItemRequestMapper.toListItemRequestDto(requestList);
-        for (ItemRequestDto itemRequest: itemRequestDtoList) {
-            if (itemRepository.findByRequest_IdOrderByCreated(itemRequest.getId()).isPresent())
-                itemRequest.setItems(ItemMapper.toListItemDto(itemRepository.findByRequest_IdOrderByCreated(itemRequest.getId()).get()));
+    @Override
+    public Collection<ItemRequest> getAllOwn(Integer requestorId) {
+        checkUser(requestorId);
+        Collection<ItemRequest> itemRequests = itemRequestRepository.getRequestsByRequestor(requestorId);
+        if (itemRequests.isEmpty()) {
+            return new ArrayList<ItemRequest>();
         }
-        log.info("Пользователь {} получил список запросов.", user.getName());
-        return itemRequestDtoList;
+        for (ItemRequest itemRequest : itemRequests) {
+            itemRequest.setItems(itemRepository.findByRequestId(itemRequest.getId()));
+        }
+        log.info("запрошены requests пользователя /{}/", requestorId);
+        return itemRequests;
+    }
+
+    @Override
+    public ItemRequest getById(Integer requestId, Integer requestorId) {
+        checkUser(requestorId);
+        log.info("запрошен request /{}/ пользователя /{}/", requestId, requestorId);
+        ItemRequest itemRequest = itemRequestRepository.findById(requestId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        itemRequest.setItems(itemRepository.findByRequestId(itemRequest.getId()));
+        return itemRequest;
+
+    }
+
+    @Override
+    public Collection<ItemRequest> getAll(Integer requestorId, Integer page, Integer size) {
+        checkUser(requestorId);
+        log.info(">>>===запрошены все request пользователем requestorId=/{}/ page=/{}/ size= /{}/===<<<<",
+                requestorId, page, size);
+        if (page < 0 || size < 1) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        }
+        Collection<ItemRequest> itemRequests =
+                itemRequestRepository.getAll(requestorId, PageRequest.of(page, size)).toList();
+        for (ItemRequest itemRequest : itemRequests) {
+            itemRequest.setItems(itemRepository.findByRequestId(itemRequest.getId()));
+        }
+        return itemRequests;
     }
 }

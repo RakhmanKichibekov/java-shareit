@@ -1,54 +1,55 @@
 package ru.practicum.shareit.requests;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.requests.dto.ItemRequestDto;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
-import javax.validation.ValidationException;
-import java.util.List;
-import java.util.Optional;
+import java.util.ArrayList;
+import java.util.Collection;
 
-
+@Slf4j
 @RestController
+@RequiredArgsConstructor
 @RequestMapping(path = "/requests")
 public class ItemRequestController {
 
-    private ItemRequestService itemRequestService;
+    private final ItemRequestService itemRequestService;
+    private final ItemRequestMapper itemRequestMapper;
 
-    @Autowired
-    public ItemRequestController(ItemRequestService itemRequestService) {
-        this.itemRequestService = itemRequestService;
+    @PostMapping
+    public ItemRequestDto add(@Valid @RequestBody ItemRequestDto itemRequestDto,
+                              @RequestHeader("X-Sharer-User-Id") Integer requestorId) {
+        ItemRequest itemRequest = itemRequestMapper.toItemRequest(itemRequestDto, requestorId);
+        return itemRequestMapper.toDto(itemRequestService.add(itemRequest));
     }
 
-    @RequestMapping(value ="/",produces = "application/json")
-    public String getURLValue(HttpServletRequest request){
-        String test = request.getRequestURI();
-        return test;
+    @GetMapping
+    public Collection<ItemRequestDto> getAllOwn(@RequestHeader("X-Sharer-User-Id") Integer requestorId) {
+        Collection<ItemRequest> itemRequests = itemRequestService.getAllOwn(requestorId);
+        Collection<ItemRequestDto> itemRequestDtos = new ArrayList<>();
+        for (ItemRequest itemRequest : itemRequests) {
+            itemRequestDtos.add(itemRequestMapper.toDto(itemRequest));
+        }
+        return itemRequestDtos;
     }
 
-    @PostMapping()
-    protected ItemRequestDto create( @RequestHeader("X-Sharer-User-Id") Optional<Long> idUser,
-                                     @Valid @RequestBody ItemRequestDto itemRequestDto) throws ValidationException {
-        return itemRequestService.createItemRequest(idUser, itemRequestDto);
-    }
-    @GetMapping()
-    protected List<ItemRequestDto> findAll(@RequestHeader("X-Sharer-User-Id") Optional<Long> idUser) throws ValidationException {
-        return itemRequestService.findAllItemRequest(idUser);
+    @GetMapping("/{requestId}")
+    public ItemRequestDto getById(@PathVariable Integer requestId,
+                                  @RequestHeader("X-Sharer-User-Id") Integer requestorId) {
+        return itemRequestMapper.toDto(itemRequestService.getById(requestId, requestorId));
     }
 
     @GetMapping("/all")
-    protected List<ItemRequestDto> findItemRequest(@RequestHeader("X-Sharer-User-Id") Optional<Long> idUser,
-                                                   @RequestParam(value = "from", required = false) Optional<Integer> from,
-                                                   @RequestParam(value = "size", required = false) Optional<Integer> size)
-            throws ValidationException {
-        return itemRequestService.findItemRequestPageable(idUser, from, size);
+    public Collection<ItemRequestDto> getAll(@RequestHeader("X-Sharer-User-Id") Integer requestorId,
+                                             @RequestParam(required = false, defaultValue = "0") Integer from,
+                                             @RequestParam(required = false, defaultValue = "10") Integer size) {
+        Collection<ItemRequest> itemRequests = itemRequestService.getAll(requestorId, from, size);
+        Collection<ItemRequestDto> itemRequestDtos = new ArrayList<>();
+        for (ItemRequest itemRequest : itemRequests) {
+            itemRequestDtos.add(itemRequestMapper.toDto(itemRequest));
+        }
+        return itemRequestDtos;
     }
-    @GetMapping("/{requestId}")
-    protected ItemRequestDto findItemRequest(@RequestHeader("X-Sharer-User-Id") Optional<Long> idUser,
-                                             @PathVariable Optional<Long> requestId) throws ValidationException {
-        return itemRequestService.findItemRequestById(idUser, requestId);
-    }
-
 }

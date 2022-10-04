@@ -1,19 +1,13 @@
 package ru.practicum.shareit.requests;
 
-import ru.practicum.shareit.requests.dto.ItemRequestDto;
-
-import javax.validation.ValidationException;
-import java.util.List;
-import java.util.Optional;
+import java.util.Collection;
 
 public interface ItemRequestService {
-    List<ItemRequestDto> findAllItemRequest(Optional<Long> idUser) throws ValidationException;
+    ItemRequest add(ItemRequest itemRequest);
 
-    ItemRequestDto createItemRequest(Optional<Long> idUser, ItemRequestDto itemRequestDto) throws ValidationException;
+    Collection<ItemRequest> getAllOwn(Integer requestorId);
 
+    ItemRequest getById(Integer requestId, Integer requestorId);
 
-    List<ItemRequestDto> findItemRequestPageable(Optional<Long> idUser, Optional<Integer> from, Optional<Integer> size)
-            throws ValidationException;
-
-    ItemRequestDto findItemRequestById(Optional<Long> idUser, Optional<Long> id) throws ValidationException;
+    Collection<ItemRequest> getAll(Integer requestorId, Integer page, Integer size);
 }

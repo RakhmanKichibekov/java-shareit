@@ -1,12 +1,10 @@
-package ru.practicum.shareit.item.repository;
+package ru.practicum.shareit.item;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import ru.practicum.shareit.item.model.Comment;
 
-import java.util.List;
+import java.util.Set;
 
 public interface CommentRepository extends JpaRepository<Comment, Integer> {
-
-    List<Comment> findByItemId(Integer itemId);
-
+    Set<Comment> findAllByItem(Integer itemId);
 }

@@ -1,70 +1,50 @@
 package ru.practicum.shareit.booking;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.shareit.booking.dto.BookingDtoById;
-import ru.practicum.shareit.booking.dto.BookingDtoIn;
-import ru.practicum.shareit.booking.dto.BookingDtoOut;
-import ru.practicum.shareit.booking.exceptions.MessageFailedException;
+import ru.practicum.shareit.booking.dto.BookingDto;
+import ru.practicum.shareit.booking.dto.StatusDto;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
-import javax.validation.ValidationException;
-import java.util.List;
-import java.util.Optional;
+import java.util.Collection;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping(path = "/bookings")
 public class BookingController {
+    private final BookingService bookingService;
 
-    BookingService bookingService;
-    @Autowired
-    protected BookingController(BookingService bookingService) {
-        this.bookingService = bookingService;
+    @PostMapping
+    public BookingDto add(@Valid @RequestBody BookingDto bookingDto, @RequestHeader("X-Sharer-User-Id") Integer userId) {
+        return bookingService.add(bookingDto, userId);
     }
 
-    @RequestMapping(value ="/", produces = "application/json")
-    protected String getURLValue(HttpServletRequest request){
-        String test = request.getRequestURI();
-        return test;
-    }
-
-    @PostMapping()
-    protected BookingDtoById create(@Valid @RequestHeader("X-Sharer-User-Id") Optional<Long> idUser,
-                                    @RequestBody Optional<BookingDtoIn> bookingDtoIn) throws ValidationException {
-        return bookingService.createBooking(idUser, bookingDtoIn);
-    }
     @PatchMapping("/{bookingId}")
-    protected BookingDtoOut putStatus(@RequestHeader("X-Sharer-User-Id") Optional<Long> idUser,
-                                      @PathVariable Optional<Long> bookingId, @RequestParam("approved") Boolean approved)
-            throws ValidationException {
-        return bookingService.patchStatusBooking(idUser, bookingId, approved);
+    public BookingDto updApprove(@PathVariable Integer bookingId, @RequestParam @NonNull Boolean approved,
+                                 @RequestHeader("X-Sharer-User-Id") Integer userId) {
+        return bookingService.updApprove(bookingId, approved, userId);
     }
+
     @GetMapping("/{bookingId}")
-    protected BookingDtoOut findBookingId(@RequestHeader("X-Sharer-User-Id") Optional<Long> idUser,
-                                          @PathVariable(value = "bookingId", required = false) Optional<Long> bookingId)
-            throws ValidationException {
-        return bookingService.findBookingById(idUser, bookingId);
+    public BookingDto findById(@PathVariable Integer bookingId, @RequestHeader("X-Sharer-User-Id") Integer userId) {
+        return bookingService.findById(bookingId, userId);
     }
-    @GetMapping()
-    protected List<BookingDtoOut> findBooking(@RequestHeader("X-Sharer-User-Id") Optional<Long> userId,
-                                              @RequestParam(value = "from", required = false) Optional<Integer> from,
-                                              @RequestParam(value = "size", required = false) Optional<Integer> size,
-                                              @RequestParam(value = "state", required = false, defaultValue = "ALL") String state)
-            throws ValidationException, MessageFailedException {
-        return bookingService.findBookingsState(userId, from, size, state);
+
+    @GetMapping
+    public Collection<BookingDto> findAllByUser(@RequestHeader("X-Sharer-User-Id") Integer userId,
+                                                @RequestParam(defaultValue = "ALL") StatusDto state,
+                                                @RequestParam(required = false, defaultValue = "0") Integer from,
+                                                @RequestParam(required = false, defaultValue = "10") Integer size) {
+        return bookingService.findAllByUser(userId, state, from, size);
     }
-    @GetMapping("/")
-    protected List<BookingDtoOut> findBooking(@RequestHeader("X-Sharer-User-Id") Optional<Long> userId)
-            throws ValidationException {
-        return bookingService.findBookingsAllById(userId);
-    }
+
     @GetMapping("/owner")
-    protected List<BookingDtoOut> findBookingOwner(@RequestHeader("X-Sharer-User-Id") Optional<Long> idUser,
-                                                   @RequestParam(value = "from", required = false) Optional<Integer> from,
-                                                   @RequestParam(value = "size", required = false) Optional<Integer> size,
-                                                   @RequestParam(value = "state", required = false, defaultValue = "ALL") String state)
-            throws ValidationException, MessageFailedException {
-        return bookingService.findBookingsOwnerState(idUser, from, size, state);
+    public Collection<BookingDto> findAllByOwner(@RequestHeader("X-Sharer-User-Id") Integer userId,
+                                                 @RequestParam(defaultValue = "ALL") StatusDto state,
+                                                 @RequestParam(required = false, defaultValue = "0") Integer from,
+                                                 @RequestParam(required = false, defaultValue = "10") Integer size) {
+        return bookingService.findAllByOwner(userId, state, from, size);
     }
+
 }

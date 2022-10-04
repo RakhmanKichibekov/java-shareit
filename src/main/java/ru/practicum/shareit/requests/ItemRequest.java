@@ -1,30 +1,31 @@
 package ru.practicum.shareit.requests;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.Data;
+import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.User;
+
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
+
+@Data
 @Entity
 @Table(name = "requests")
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
 public class ItemRequest {
 
-    public ItemRequest (String description) {
-        this.description = description;
-    }
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Integer id;
+
     private String description;
-    @ManyToOne(fetch = FetchType.EAGER,
-            cascade=CascadeType.ALL)
-    @JoinColumn(name = "requestor_id")
+
+    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @JoinColumn(name = "requestor")
     private User requestor;
-    private LocalDateTime created;
+
+    private LocalDateTime created = LocalDateTime.now();
+
+    @Transient
+    private Set<Item> items = new HashSet<>();
 }
