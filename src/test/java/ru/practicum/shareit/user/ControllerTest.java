@@ -157,15 +157,4 @@ public class ControllerTest {
                 .delete(1);
     }
 
-    @Test
-    public void deleteAllUsersTest() throws Exception {
-        mvc.perform(delete("/users")
-                        .characterEncoding(StandardCharsets.UTF_8)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk());
-        Mockito
-                .verify(userService, Mockito.times(1))
-                .deleteAll();
-    }
 }
