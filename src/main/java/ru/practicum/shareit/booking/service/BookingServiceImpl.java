@@ -119,9 +119,7 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public Collection<BookingDto> findAllByUser(Integer userId, StatusDto state, Integer page, Integer size) {
-        if (page < 0 || size < 1) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
-        }
+        validation(page, size);
         checkValidUser(userId);
 
         Integer countBookings = bookingRepository.getCountBookingsByUser(userId);
@@ -199,9 +197,7 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public Collection<BookingDto> findAllByOwner(Integer userId, StatusDto state, Integer page, Integer size) {
-        if (page < 0 || size < 1) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
-        }
+        validation(page, size);
         checkValidUser(userId);
         ArrayList<BookingDto> listDto = new ArrayList<>();
         switch (state) {
@@ -277,5 +273,10 @@ public class BookingServiceImpl implements BookingService {
         upd.setStart(dateTime);
         upd.setEnd(dateTime.plusDays(2));
         bookingRepository.save(upd);
+    }
+    private void validation(Integer page, Integer size) {
+        if (page < 0 || size < 1) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        }
     }
 }

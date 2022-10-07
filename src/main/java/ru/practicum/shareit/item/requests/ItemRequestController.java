@@ -9,7 +9,6 @@ import ru.practicum.shareit.item.requests.dto.ItemRequestDto;
 import ru.practicum.shareit.item.requests.service.ItemRequestService;
 
 import javax.validation.Valid;
-import java.util.ArrayList;
 import java.util.Collection;
 
 @Slf4j
@@ -30,12 +29,7 @@ public class ItemRequestController {
 
     @GetMapping
     public Collection<ItemRequestDto> getAllOwn(@RequestHeader("X-Sharer-User-Id") Integer requestorId) {
-        Collection<ItemRequest> itemRequests = itemRequestService.getAllOwn(requestorId);
-        Collection<ItemRequestDto> itemRequestDtos = new ArrayList<>();
-        for (ItemRequest itemRequest : itemRequests) {
-            itemRequestDtos.add(itemRequestMapper.toDto(itemRequest));
-        }
-        return itemRequestDtos;
+        return itemRequestMapper.getAllOwn(requestorId, itemRequestService, itemRequestMapper);
     }
 
     @GetMapping("/{requestId}")
@@ -48,11 +42,7 @@ public class ItemRequestController {
     public Collection<ItemRequestDto> getAll(@RequestHeader("X-Sharer-User-Id") Integer requestorId,
                                              @RequestParam(required = false, defaultValue = "0") Integer from,
                                              @RequestParam(required = false, defaultValue = "10") Integer size) {
-        Collection<ItemRequest> itemRequests = itemRequestService.getAll(requestorId, from, size);
-        Collection<ItemRequestDto> itemRequestDtos = new ArrayList<>();
-        for (ItemRequest itemRequest : itemRequests) {
-            itemRequestDtos.add(itemRequestMapper.toDto(itemRequest));
-        }
-        return itemRequestDtos;
+
+        return itemRequestMapper.getAll(requestorId, from, size, itemRequestService, itemRequestMapper);
     }
 }

@@ -1,5 +1,6 @@
 package ru.practicum.shareit.request;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
@@ -87,107 +88,86 @@ public class ControllerRequestTest {
     }
 
     @Test
-    public void addRequestTest() {
+    public void addRequestTest() throws Exception {
         when(itemRequestService.add(Mockito.any(ItemRequest.class)))
                 .thenReturn(itemRequest);
-        try {
-            mockMvc.perform(post("/requests")
-                            .content(objectMapper.writeValueAsString(itemRequestMapper.toDto(itemRequest)))
-                            .characterEncoding(StandardCharsets.UTF_8)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .accept(MediaType.APPLICATION_JSON)
-                            .header("X-Sharer-User-Id", 2))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.id", is(itemRequestDto.getId()), Integer.class))
-                    .andExpect(jsonPath("$.description", is(itemRequestDto.getDescription())))
-                    .andExpect(jsonPath("$.requestor", is(itemRequestDto.getRequestor()), User.class))
-                    .andExpect(jsonPath("$.items", is(Matchers.notNullValue())));
-        } catch (Exception e) {
-            throw new RuntimeException(e.getMessage());
-        }
+        mockMvc.perform(post("/requests")
+                        .content(objectMapper.writeValueAsString(itemRequestMapper.toDto(itemRequest)))
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .header("X-Sharer-User-Id", 2))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id", is(itemRequestDto.getId()), Integer.class))
+                .andExpect(jsonPath("$.description", is(itemRequestDto.getDescription())))
+                .andExpect(jsonPath("$.requestor", is(itemRequestDto.getRequestor()), User.class))
+                .andExpect(jsonPath("$.items", is(Matchers.notNullValue())));
     }
 
     @Test
-    public void addRequestWithInvalidDescriptionTest() {
+    public void addRequestWithInvalidDescriptionTest() throws Exception {
         itemRequest.setDescription("");
         when(itemRequestService.add(Mockito.any(ItemRequest.class)))
                 .thenReturn(itemRequest);
-        try {
-            mockMvc.perform(post("/requests")
-                            .content(objectMapper.writeValueAsString(itemRequestMapper.toDto(itemRequest)))
-                            .characterEncoding(StandardCharsets.UTF_8)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .accept(MediaType.APPLICATION_JSON)
-                            .header("X-Sharer-User-Id", 2))
-                    .andExpect(status().isBadRequest());
-        } catch (Exception e) {
-            throw new RuntimeException(e.getMessage());
-        }
+        mockMvc.perform(post("/requests")
+                        .content(objectMapper.writeValueAsString(itemRequestMapper.toDto(itemRequest)))
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .header("X-Sharer-User-Id", 2))
+                .andExpect(status().isBadRequest());
     }
 
     @Test
-    public void getAllOwnTest() {
+    public void getAllOwnTest() throws Exception {
         when(itemRequestService.getAllOwn(Mockito.anyInt()))
                 .thenReturn(List.of(itemRequest));
-        try {
-            mockMvc.perform(get("/requests")
-                            .characterEncoding(StandardCharsets.UTF_8)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .accept(MediaType.APPLICATION_JSON)
-                            .header("X-Sharer-User-Id", 2))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.*", is(hasSize(1))))
-                    .andExpect(jsonPath("$.[0].id", is(itemRequestDto.getId()), Integer.class))
-                    .andExpect(jsonPath("$.[0].description", is(itemRequestDto.getDescription())))
-                    .andExpect(jsonPath("$.[0].requestor", is(itemRequestDto.getRequestor()), User.class))
-                    .andExpect(jsonPath("$.[0].created", is(Matchers.notNullValue())))
-                    .andExpect(jsonPath("$.[0].items", is(Matchers.notNullValue())));
-        } catch (Exception e) {
-            throw new RuntimeException(e.getMessage());
-        }
+        mockMvc.perform(get("/requests")
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .header("X-Sharer-User-Id", 2))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.*", is(hasSize(1))))
+                .andExpect(jsonPath("$.[0].id", is(itemRequestDto.getId()), Integer.class))
+                .andExpect(jsonPath("$.[0].description", is(itemRequestDto.getDescription())))
+                .andExpect(jsonPath("$.[0].requestor", is(itemRequestDto.getRequestor()), User.class))
+                .andExpect(jsonPath("$.[0].created", is(Matchers.notNullValue())))
+                .andExpect(jsonPath("$.[0].items", is(Matchers.notNullValue())));
     }
 
     @Test
-    public void getByRequestIdTest() {
+    public void getByRequestIdTest() throws Exception {
         when(itemRequestService.getById(Mockito.anyInt(), Mockito.anyInt()))
                 .thenReturn(itemRequest);
-        try {
-            mockMvc.perform(get("/requests/{requestId}", 1)
-                            .characterEncoding(StandardCharsets.UTF_8)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .accept(MediaType.APPLICATION_JSON)
-                            .header("X-Sharer-User-Id", 2))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.id", is(itemRequestDto.getId()), Integer.class))
-                    .andExpect(jsonPath("$.description", is(itemRequestDto.getDescription())))
-                    .andExpect(jsonPath("$.requestor", is(itemRequestDto.getRequestor()), User.class))
-                    .andExpect(jsonPath("$.created", is(Matchers.notNullValue())))
-                    .andExpect(jsonPath("$.items", is(Matchers.notNullValue())));
-
-        } catch (Exception e) {
-            throw new RuntimeException(e.getMessage());
-        }
+        mockMvc.perform(get("/requests/{requestId}", 1)
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .header("X-Sharer-User-Id", 2))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id", is(itemRequestDto.getId()), Integer.class))
+                .andExpect(jsonPath("$.description", is(itemRequestDto.getDescription())))
+                .andExpect(jsonPath("$.requestor", is(itemRequestDto.getRequestor()), User.class))
+                .andExpect(jsonPath("$.created", is(Matchers.notNullValue())))
+                .andExpect(jsonPath("$.items", is(Matchers.notNullValue())));
     }
 
     @Test
-    public void getAllRequestsTest() {
+    public void getAllRequestsTest() throws Exception {
         when(itemRequestService.getAll(Mockito.anyInt(), Mockito.anyInt(), Mockito.anyInt()))
                 .thenReturn(List.of(itemRequest));
-        try {
-            mockMvc.perform(get("/requests/all")
-                            .characterEncoding(StandardCharsets.UTF_8)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .accept(MediaType.APPLICATION_JSON)
-                            .header("X-Sharer-User-Id", 2))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.*", is(hasSize(1))))
-                    .andExpect(jsonPath("$.[0].id", is(itemRequestDto.getId()), Integer.class))
-                    .andExpect(jsonPath("$.[0].description", is(itemRequestDto.getDescription())))
-                    .andExpect(jsonPath("$.[0].requestor", is(itemRequestDto.getRequestor()), User.class))
-                    .andExpect(jsonPath("$.[0].created", is(Matchers.notNullValue())))
-                    .andExpect(jsonPath("$.[0].items", is(Matchers.notNullValue())));
-        } catch (Exception e) {
-            throw new RuntimeException(e.getMessage());
-        }
+        mockMvc.perform(get("/requests/all")
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .header("X-Sharer-User-Id", 2))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.*", is(hasSize(1))))
+                .andExpect(jsonPath("$.[0].id", is(itemRequestDto.getId()), Integer.class))
+                .andExpect(jsonPath("$.[0].description", is(itemRequestDto.getDescription())))
+                .andExpect(jsonPath("$.[0].requestor", is(itemRequestDto.getRequestor()), User.class))
+                .andExpect(jsonPath("$.[0].created", is(Matchers.notNullValue())))
+                .andExpect(jsonPath("$.[0].items", is(Matchers.notNullValue())));
     }
 }

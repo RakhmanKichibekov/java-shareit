@@ -39,12 +39,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public Item add(Item item) {
-        if (item.getName().isEmpty() || item.getAvailable() == null || item.getDescription() == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
-        }
-        if (userRepository.findById(item.getOwner()).isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
-        }
+        validation(item);
 
         log.info("добавлена вещь /{}/", item);
         return itemRepository.save(item);
@@ -52,12 +47,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public Item update(Item item, Integer userId) {
-        if (itemRepository.findById(item.getId()).isEmpty() || userRepository.findById(userId).isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
-        }
-        if (!itemRepository.findById(item.getId()).orElseThrow().getOwner().equals(userId)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
-        }
+        validation2(item, userId);
         Item itemUpd = itemRepository.findById(item.getId()).orElseThrow();
         if (item.getName() != null) {
             itemUpd.setName(item.getName());
@@ -173,5 +163,23 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public User getUser(Integer id) {
         return userRepository.findById(id).orElseThrow();
+    }
+
+    private void validation(Item item) {
+        if (item.getName().isEmpty() || item.getAvailable() == null || item.getDescription() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        }
+        if (userRepository.findById(item.getOwner()).isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        }
+    }
+
+    private void validation2(Item item,Integer userId){
+        if (itemRepository.findById(item.getId()).isEmpty() || userRepository.findById(userId).isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        }
+        if (!itemRepository.findById(item.getId()).orElseThrow().getOwner().equals(userId)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        }
     }
 }

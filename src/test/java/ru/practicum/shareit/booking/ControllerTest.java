@@ -1,5 +1,6 @@
 package ru.practicum.shareit.booking;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -81,134 +82,127 @@ public class ControllerTest {
     }
 
     @Test
-    public void addBookingTest() {
+    public void addBookingTest() throws Exception {
         when(bookingService.add(Mockito.any(BookingDto.class), Mockito.anyInt()))
                 .thenReturn(bookingMapper.toDto(booking1, item, user2));
-        try {
-            mockMvc.perform(post("/bookings")
-                            .content(objectMapper.writeValueAsString(bookingMapper.toDto(booking1, item, user2)))
-                            .characterEncoding(StandardCharsets.UTF_8)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .accept(MediaType.APPLICATION_JSON)
-                            .header("X-Sharer-User-Id", 2))
-                    .andExpect(status().isOk())
-                    .andExpect(content().json(objectMapper.writeValueAsString(bookingDto1)));
-        } catch (Exception e) {
-            throw new RuntimeException(e.getMessage());
-        }
+        mockMvc.perform(post("/bookings")
+                        .content(objectMapper.writeValueAsString(bookingMapper.toDto(booking1, item, user2)))
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .header("X-Sharer-User-Id", 2))
+                .andExpect(status().isOk())
+                .andExpect(content().json(objectMapper.writeValueAsString(bookingDto1)));
     }
 
     @Test
-    public void addBookingWithInvalidDate() {
+    public void addBookingWithInvalidDate() throws Exception {
         booking1.setStart(null);
-        try {
-            mockMvc.perform(post("/bookings")
-                            .content(objectMapper.writeValueAsString(bookingMapper.toDto(booking1, item, user2)))
-                            .characterEncoding(StandardCharsets.UTF_8)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .accept(MediaType.APPLICATION_JSON)
-                            .header("X-Sharer-User-Id", 2))
-                    .andExpect(status().isBadRequest());
-        } catch (Exception e) {
-            throw new RuntimeException(e.getMessage());
-        }
+        mockMvc.perform(post("/bookings")
+                        .content(objectMapper.writeValueAsString(bookingMapper.toDto(booking1, item, user2)))
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .header("X-Sharer-User-Id", 2))
+                .andExpect(status().isBadRequest());
     }
 
     @Test
-    public void updApproveTest() {
+    public void updApproveTest() throws Exception {
         booking1.setStatus(Status.APPROVED);
         when(bookingService.updApprove(Mockito.anyInt(), Mockito.anyBoolean(), Mockito.anyInt()))
                 .thenReturn(bookingMapper.toDto(booking1, item, user2));
-        try {
-            mockMvc.perform(patch("/bookings/{bookingId}", booking1.getId())
-                            .content(objectMapper.writeValueAsString(bookingMapper.toDto(booking1, item, user2)))
-                            .characterEncoding(StandardCharsets.UTF_8)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .accept(MediaType.APPLICATION_JSON)
-                            .header("X-Sharer-User-Id", 2)
-                            .param("approved", "true"))
-                    .andExpect(status().isOk())
-                    .andExpect(content().json(objectMapper
-                            .writeValueAsString(bookingMapper.toDto(booking1, item, user2))));
-        } catch (Exception e) {
-            throw new RuntimeException(e.getMessage());
-        }
+        mockMvc.perform(patch("/bookings/{bookingId}", booking1.getId())
+                        .content(objectMapper.writeValueAsString(bookingMapper.toDto(booking1, item, user2)))
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .header("X-Sharer-User-Id", 2)
+                        .param("approved", "true"))
+                .andExpect(status().isOk())
+                .andExpect(content().json(objectMapper
+                        .writeValueAsString(bookingMapper.toDto(booking1, item, user2))));
     }
 
     @Test
-    public void findBookingByIdTest() {
+    public void findBookingByIdTest() throws Exception {
         when(bookingService.findById(1, 2))
                 .thenReturn(bookingDto1);
-        try {
-            mockMvc.perform(get("/bookings/{bookingId}", booking1.getId())
-                            .characterEncoding(StandardCharsets.UTF_8)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .accept(MediaType.APPLICATION_JSON)
-                            .header("X-Sharer-User-Id", 2))
-                    .andExpect(status().isOk())
-                    .andExpect(content().json(objectMapper
-                            .writeValueAsString(bookingMapper.toDto(booking1, item, user2))));
-        } catch (Exception e) {
-            throw new RuntimeException(e.getMessage());
-        }
+        mockMvc.perform(get("/bookings/{bookingId}", booking1.getId())
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .header("X-Sharer-User-Id", 2))
+                .andExpect(status().isOk())
+                .andExpect(content().json(objectMapper
+                        .writeValueAsString(bookingMapper.toDto(booking1, item, user2))));
     }
 
     @Test
-    public void findAllBookingsByUser() {
+    public void findAllBookingsByUser() throws Exception {
         BookingDto bookingDto2 = bookingMapper.toDto(booking2, item, user2);
         when(bookingService.findAllByUser(Mockito.anyInt(), Mockito.any(StatusDto.class),
                 Mockito.anyInt(), Mockito.anyInt()))
                 .thenReturn(List.of(bookingDto1, bookingDto2));
-        try {
-            mockMvc.perform(get("/bookings")
-                            .characterEncoding(StandardCharsets.UTF_8)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .accept(MediaType.APPLICATION_JSON)
-                            .header("X-Sharer-User-Id", 2))
-                    .andExpect(status().isOk())
-                    .andExpect(content().json(objectMapper.writeValueAsString(List.of(bookingDto1, bookingDto2))));
-            mockMvc.perform(get("/bookings")
-                            .characterEncoding(StandardCharsets.UTF_8)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .accept(MediaType.APPLICATION_JSON)
-                            .header("X-Sharer-User-Id", 2)
-                            .param("state", "ALL")
-                            .param("from", "0")
-                            .param("size", "10"))
-                    .andExpect(status().isOk())
-                    .andExpect(content().json(objectMapper.writeValueAsString(List.of(bookingDto1, bookingDto2))));
-        } catch (Exception e) {
-            throw new RuntimeException(e.getMessage());
-        }
+        mockMvc.perform(get("/bookings")
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .header("X-Sharer-User-Id", 2)
+                        .param("state", "ALL")
+                        .param("from", "0")
+                        .param("size", "10"))
+                .andExpect(status().isOk())
+                .andExpect(content().json(objectMapper.writeValueAsString(List.of(bookingDto1, bookingDto2))));
     }
 
     @Test
-    public void findAllByOwner() {
+    public void findAllBookingsByUser1() throws Exception {
+        BookingDto bookingDto2 = bookingMapper.toDto(booking2, item, user2);
+        when(bookingService.findAllByUser(Mockito.anyInt(), Mockito.any(StatusDto.class),
+                Mockito.anyInt(), Mockito.anyInt()))
+                .thenReturn(List.of(bookingDto1, bookingDto2));
+        mockMvc.perform(get("/bookings")
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .header("X-Sharer-User-Id", 2))
+                .andExpect(status().isOk())
+                .andExpect(content().json(objectMapper.writeValueAsString(List.of(bookingDto1, bookingDto2))));
+    }
+
+
+    @Test
+    public void findAllByOwner() throws Exception {
         BookingDto bookingDto2 = bookingMapper.toDto(booking2, item, user2);
         when(bookingService.findAllByOwner(Mockito.anyInt(), Mockito.any(StatusDto.class),
                 Mockito.anyInt(), Mockito.anyInt()))
                 .thenReturn(List.of(bookingDto1, bookingDto2));
-        try {
-            mockMvc.perform(get("/bookings/owner")
-                            .characterEncoding(StandardCharsets.UTF_8)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .accept(MediaType.APPLICATION_JSON)
-                            .header("X-Sharer-User-Id", 2))
-                    .andExpect(status().isOk())
-                    .andExpect(content().json(objectMapper.writeValueAsString(List.of(bookingDto1, bookingDto2))));
-            mockMvc.perform(get("/bookings/owner")
-                            .characterEncoding(StandardCharsets.UTF_8)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .accept(MediaType.APPLICATION_JSON)
-                            .header("X-Sharer-User-Id", 2)
-                            .param("state", "ALL")
-                            .param("from", "0")
-                            .param("size", "10"))
-                    .andExpect(status().isOk())
-                    .andExpect(content().json(objectMapper.writeValueAsString(List.of(bookingDto1, bookingDto2))));
-        } catch (Exception e) {
-            throw new RuntimeException(e.getMessage());
-        }
+        mockMvc.perform(get("/bookings/owner")
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .header("X-Sharer-User-Id", 2)
+                        .param("state", "ALL")
+                        .param("from", "0")
+                        .param("size", "10"))
+                .andExpect(status().isOk())
+                .andExpect(content().json(objectMapper.writeValueAsString(List.of(bookingDto1, bookingDto2))));
+    }
+
+    @Test
+    public void findAllByOwner1() throws Exception {
+        BookingDto bookingDto2 = bookingMapper.toDto(booking2, item, user2);
+        when(bookingService.findAllByOwner(Mockito.anyInt(), Mockito.any(StatusDto.class),
+                Mockito.anyInt(), Mockito.anyInt()))
+                .thenReturn(List.of(bookingDto1, bookingDto2));
+        mockMvc.perform(get("/bookings/owner")
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .header("X-Sharer-User-Id", 2))
+                .andExpect(status().isOk())
+                .andExpect(content().json(objectMapper.writeValueAsString(List.of(bookingDto1, bookingDto2))));
     }
 
     @Test

@@ -6,7 +6,6 @@ import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.service.UserService;
 
 import javax.validation.Valid;
-import java.util.ArrayList;
 import java.util.Collection;
 
 @RestController
@@ -27,12 +26,8 @@ public class UserController {
     }
 
     @GetMapping
-    public Collection<UserDto> getAll() {
-        ArrayList<UserDto> list = new ArrayList<>();
-        for (User user : userServiceImpl.getAll()) {
-            list.add(userMapper.toDto(user));
-        }
-        return list;
+    public Collection<UserDto> getAll(){
+        return userMapper.getAll(userServiceImpl, userMapper);
     }
 
     @PostMapping
@@ -53,8 +48,8 @@ public class UserController {
     }
 
     @DeleteMapping
-    public void deleteAll() {
-        userServiceImpl.deleteAll();
+    public void deleteAll(UserService userServiceImpl) {
+        userMapper.deleteAll(userServiceImpl);
     }
 
 }
