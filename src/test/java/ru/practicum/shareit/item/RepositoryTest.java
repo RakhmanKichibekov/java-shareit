@@ -30,6 +30,42 @@ public class RepositoryTest {
     private final ItemRepository itemRepository;
 
     @Test
+    public void findByNameOrDescriptionItemTestArray() {
+        user1.setName("user1");
+        user1.setEmail("u1@user.com");
+        entityManager.persist(user1);
+        item1.setName("item1");
+        item1.setDescription("desc Item1");
+        item1.setAvailable(true);
+        item1.setOwner(1);
+        entityManager.persist(item1);
+        TypedQuery<Item> query = entityManager.getEntityManager()
+                .createQuery("select i from Item i where upper(i.name) like upper(concat('%',:str,'%')) or "
+                        + "upper(i.description) like upper(concat('%',:str,'%')) ", Item.class);
+        Pageable pageable = PageRequest.of(0, 10);
+        Collection<Item> items = itemRepository.findByNameOrDesc("item", pageable).getContent();
+        Assertions.assertEquals(items.size(), 1);
+        Assertions.assertEquals(items.toArray()[0], item1);
+    }
+
+    @Test
+    public void findByNameOrDescriptionItemTestDesc() {
+        user1.setName("user1");
+        user1.setEmail("u1@user.com");
+        entityManager.persist(user1);
+        item1.setName("item1");
+        item1.setDescription("desc Item1");
+        item1.setAvailable(true);
+        item1.setOwner(1);
+        entityManager.persist(item1);
+        TypedQuery<Item> query = entityManager.getEntityManager()
+                .createQuery("select i from Item i where upper(i.name) like upper(concat('%',:str,'%')) or "
+                        + "upper(i.description) like upper(concat('%',:str,'%')) ", Item.class);
+        Item itemResult = query.setParameter("str", "Desc ITEM").getSingleResult();
+        Assertions.assertEquals(itemResult.getDescription(), item1.getDescription());
+    }
+
+    @Test
     public void findByNameOrDescriptionItemTest() {
         user1.setName("user1");
         user1.setEmail("u1@user.com");
@@ -44,12 +80,6 @@ public class RepositoryTest {
                         + "upper(i.description) like upper(concat('%',:str,'%')) ", Item.class);
         Item itemResult = query.setParameter("str", "item").getSingleResult();
         Assertions.assertEquals(itemResult.getName(), item1.getName());
-        itemResult = query.setParameter("str", "Desc ITEM").getSingleResult();
-        Assertions.assertEquals(itemResult.getDescription(), item1.getDescription());
-
-        Pageable pageable = PageRequest.of(0, 10);
-        Collection<Item> items = itemRepository.findByNameOrDesc("item", pageable).getContent();
-        Assertions.assertEquals(items.size(), 1);
-        Assertions.assertEquals(items.toArray()[0], item1);
     }
+
 }

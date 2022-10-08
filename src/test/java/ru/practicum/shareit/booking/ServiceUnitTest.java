@@ -187,9 +187,50 @@ public class ServiceUnitTest {
                 .thenReturn(page);
 
         List<BookingDto> listResult = (List<BookingDto>) bookingService.findAllByUser(2, StatusDto.ALL, 0, 10);
-        Assertions.assertEquals(listResult, list);
-        Assertions.assertEquals(listResult.size(), 2);
 
+        Mockito
+                .when(bookingRepository.findByBookerIdAndEndIsAfterOrderByStartDesc(Mockito.anyInt(),
+                        Mockito.any(LocalDateTime.class), Mockito.any(Pageable.class)))
+                .thenReturn(page);
+        listResult = (List<BookingDto>) bookingService.findAllByUser(2, StatusDto.FUTURE, 0, 10);
+        Assertions.assertEquals(listResult, list);
+
+
+
+        Mockito
+                .when(bookingRepository.getByUserCurrent(Mockito.anyInt(),
+                        Mockito.any(LocalDateTime.class), Mockito.any(Pageable.class)))
+                .thenReturn(page);
+        listResult = (List<BookingDto>) bookingService.findAllByUser(2, StatusDto.CURRENT, 0, 10);
+        Assertions.assertEquals(listResult, list);
+    }
+
+    @Test
+    public void findAllStatesBookingsByUserTest1() {
+        List<BookingDto> list = List.of(bookingDto1, bookingDto2);
+        List<Booking> list1 = List.of(booking1, booking2);
+        Pageable pageable = PageRequest.of(0, 2);
+        Page<Booking> page = new PageImpl<>(list1, pageable, list1.size());
+        Mockito
+                .when(userRepository.findById(Mockito.anyInt()))
+                .thenReturn(Optional.of(user2));
+        Mockito
+                .when(itemRepository.findById(Mockito.anyInt()))
+                .thenReturn(Optional.of(item));
+        Mockito
+                .when(bookingMapper.toDto(booking1, item, user2))
+                .thenReturn(bookingDto1);
+        Mockito
+                .when(bookingMapper.toDto(booking2, item, user2))
+                .thenReturn(bookingDto2);
+        Mockito
+                .when(bookingRepository.getCountBookingsByUser(Mockito.anyInt()))
+                .thenReturn(10);
+        Mockito
+                .when(bookingRepository.getBookingsByUser(Mockito.anyInt(), Mockito.any(Pageable.class)))
+                .thenReturn(page);
+
+        List<BookingDto> listResult = (List<BookingDto>) bookingService.findAllByUser(2, StatusDto.ALL, 0, 10);
         Mockito
                 .when(bookingMapper.toStatus(Mockito.any(StatusDto.class)))
                 .thenReturn(Status.WAITING);
@@ -199,28 +240,106 @@ public class ServiceUnitTest {
                 .thenReturn(page);
         listResult = (List<BookingDto>) bookingService.findAllByUser(2, StatusDto.WAITING, 0, 10);
         Assertions.assertEquals(listResult, list);
+    }
 
+    @Test
+    public void findAllStatesBookingsByUserTest2() {
+        List<BookingDto> list = List.of(bookingDto1, bookingDto2);
+        List<Booking> list1 = List.of(booking1, booking2);
+        Pageable pageable = PageRequest.of(0, 2);
+        Page<Booking> page = new PageImpl<>(list1, pageable, list1.size());
+        Mockito
+                .when(userRepository.findById(Mockito.anyInt()))
+                .thenReturn(Optional.of(user2));
+        Mockito
+                .when(itemRepository.findById(Mockito.anyInt()))
+                .thenReturn(Optional.of(item));
+        Mockito
+                .when(bookingMapper.toDto(booking1, item, user2))
+                .thenReturn(bookingDto1);
+        Mockito
+                .when(bookingMapper.toDto(booking2, item, user2))
+                .thenReturn(bookingDto2);
+        Mockito
+                .when(bookingRepository.getCountBookingsByUser(Mockito.anyInt()))
+                .thenReturn(10);
+        Mockito
+                .when(bookingRepository.getBookingsByUser(Mockito.anyInt(), Mockito.any(Pageable.class)))
+                .thenReturn(page);
+
+        List<BookingDto> listResult = (List<BookingDto>) bookingService.findAllByUser(2, StatusDto.ALL, 0, 10);
+        Assertions.assertEquals(listResult, list);
+        Assertions.assertEquals(listResult.size(), 2);
+    }
+
+    @Test
+    public void findAllStatesBookingsByUserTest3() {
+        List<BookingDto> list = List.of(bookingDto1, bookingDto2);
+        List<Booking> list1 = List.of(booking1, booking2);
+        Pageable pageable = PageRequest.of(0, 2);
+        Page<Booking> page = new PageImpl<>(list1, pageable, list1.size());
+        Mockito
+                .when(userRepository.findById(Mockito.anyInt()))
+                .thenReturn(Optional.of(user2));
+        Mockito
+                .when(itemRepository.findById(Mockito.anyInt()))
+                .thenReturn(Optional.of(item));
+        Mockito
+                .when(bookingMapper.toDto(booking1, item, user2))
+                .thenReturn(bookingDto1);
+        Mockito
+                .when(bookingMapper.toDto(booking2, item, user2))
+                .thenReturn(bookingDto2);
+        Mockito
+                .when(bookingRepository.getCountBookingsByUser(Mockito.anyInt()))
+                .thenReturn(10);
+        Mockito
+                .when(bookingRepository.getBookingsByUser(Mockito.anyInt(), Mockito.any(Pageable.class)))
+                .thenReturn(page);
+
+        List<BookingDto> listResult = (List<BookingDto>) bookingService.findAllByUser(2, StatusDto.ALL, 0, 10);
         Mockito
                 .when(bookingRepository.findByBookerIdAndEndIsAfterOrderByStartDesc(Mockito.anyInt(),
                         Mockito.any(LocalDateTime.class), Mockito.any(Pageable.class)))
                 .thenReturn(page);
         listResult = (List<BookingDto>) bookingService.findAllByUser(2, StatusDto.FUTURE, 0, 10);
         Assertions.assertEquals(listResult, list);
+    }
 
+    @Test
+    public void findAllStatesBookingsByUserTest4() {
+        List<BookingDto> list = List.of(bookingDto1, bookingDto2);
+        List<Booking> list1 = List.of(booking1, booking2);
+        Pageable pageable = PageRequest.of(0, 2);
+        Page<Booking> page = new PageImpl<>(list1, pageable, list1.size());
+        Mockito
+                .when(userRepository.findById(Mockito.anyInt()))
+                .thenReturn(Optional.of(user2));
+        Mockito
+                .when(itemRepository.findById(Mockito.anyInt()))
+                .thenReturn(Optional.of(item));
+        Mockito
+                .when(bookingMapper.toDto(booking1, item, user2))
+                .thenReturn(bookingDto1);
+        Mockito
+                .when(bookingMapper.toDto(booking2, item, user2))
+                .thenReturn(bookingDto2);
+        Mockito
+                .when(bookingRepository.getCountBookingsByUser(Mockito.anyInt()))
+                .thenReturn(10);
+        Mockito
+                .when(bookingRepository.getBookingsByUser(Mockito.anyInt(), Mockito.any(Pageable.class)))
+                .thenReturn(page);
+
+        List<BookingDto> listResult = (List<BookingDto>) bookingService.findAllByUser(2, StatusDto.ALL, 0, 10);
         Mockito
                 .when(bookingRepository.findByBookerIdAndEndIsBeforeOrderByStartDesc(Mockito.anyInt(),
                         Mockito.any(LocalDateTime.class), Mockito.any(Pageable.class)))
                 .thenReturn(page);
         listResult = (List<BookingDto>) bookingService.findAllByUser(2, StatusDto.PAST, 0, 10);
         Assertions.assertEquals(listResult, list);
-
-        Mockito
-                .when(bookingRepository.getByUserCurrent(Mockito.anyInt(),
-                        Mockito.any(LocalDateTime.class), Mockito.any(Pageable.class)))
-                .thenReturn(page);
-        listResult = (List<BookingDto>) bookingService.findAllByUser(2, StatusDto.CURRENT, 0, 10);
-        Assertions.assertEquals(listResult, list);
     }
+
 
     @Test
     public void findAllStatesBookingsByOwnerTest() {
@@ -246,9 +365,92 @@ public class ServiceUnitTest {
 
         List<BookingDto> listResult =
                 (List<BookingDto>) bookingService.findAllByOwner(2, StatusDto.ALL, 0, 10);
-        Assertions.assertEquals(listResult, list);
-        Assertions.assertEquals(listResult.size(), 2);
 
+        Mockito
+                .when(bookingRepository.getByOwnerCurrent(Mockito.anyInt(),
+                        Mockito.any(LocalDateTime.class), Mockito.any(Pageable.class)))
+                .thenReturn(page);
+        listResult = (List<BookingDto>) bookingService.findAllByOwner(2, StatusDto.CURRENT, 0, 10);
+        Assertions.assertEquals(listResult, list);
+    }
+
+    @Test
+    public void findAllStatesBookingsByOwnerTest1() {
+        List<BookingDto> list = List.of(bookingDto1, bookingDto2);
+        List<Booking> list1 = List.of(booking1, booking2);
+        Pageable pageable = PageRequest.of(0, 2);
+        Page<Booking> page = new PageImpl<>(list1, pageable, list1.size());
+        Mockito
+                .when(userRepository.findById(Mockito.anyInt()))
+                .thenReturn(Optional.of(user2));
+        Mockito
+                .when(itemRepository.findById(Mockito.anyInt()))
+                .thenReturn(Optional.of(item));
+        Mockito
+                .when(bookingMapper.toDto(booking1, item, user2))
+                .thenReturn(bookingDto1);
+        Mockito
+                .when(bookingMapper.toDto(booking2, item, user2))
+                .thenReturn(bookingDto2);
+        Mockito
+                .when(bookingRepository.getAllByOwner(Mockito.anyInt(), Mockito.any(Pageable.class)))
+                .thenReturn(page);
+
+        List<BookingDto> listResult =
+                (List<BookingDto>) bookingService.findAllByOwner(2, StatusDto.ALL, 0, 10);
+        Assertions.assertEquals(listResult, list);
+    }
+
+    @Test
+    public void findAllStatesBookingsByOwnerTest2() {
+        List<Booking> list1 = List.of(booking1, booking2);
+        Pageable pageable = PageRequest.of(0, 2);
+        Page<Booking> page = new PageImpl<>(list1, pageable, list1.size());
+        Mockito
+                .when(userRepository.findById(Mockito.anyInt()))
+                .thenReturn(Optional.of(user2));
+        Mockito
+                .when(itemRepository.findById(Mockito.anyInt()))
+                .thenReturn(Optional.of(item));
+        Mockito
+                .when(bookingMapper.toDto(booking1, item, user2))
+                .thenReturn(bookingDto1);
+        Mockito
+                .when(bookingMapper.toDto(booking2, item, user2))
+                .thenReturn(bookingDto2);
+        Mockito
+                .when(bookingRepository.getAllByOwner(Mockito.anyInt(), Mockito.any(Pageable.class)))
+                .thenReturn(page);
+
+        List<BookingDto> listResult =
+                (List<BookingDto>) bookingService.findAllByOwner(2, StatusDto.ALL, 0, 10);
+        Assertions.assertEquals(listResult.size(), 2);
+    }
+
+    @Test
+    public void findAllStatesBookingsByOwnerTest3() {
+        List<BookingDto> list = List.of(bookingDto1, bookingDto2);
+        List<Booking> list1 = List.of(booking1, booking2);
+        Pageable pageable = PageRequest.of(0, 2);
+        Page<Booking> page = new PageImpl<>(list1, pageable, list1.size());
+        Mockito
+                .when(userRepository.findById(Mockito.anyInt()))
+                .thenReturn(Optional.of(user2));
+        Mockito
+                .when(itemRepository.findById(Mockito.anyInt()))
+                .thenReturn(Optional.of(item));
+        Mockito
+                .when(bookingMapper.toDto(booking1, item, user2))
+                .thenReturn(bookingDto1);
+        Mockito
+                .when(bookingMapper.toDto(booking2, item, user2))
+                .thenReturn(bookingDto2);
+        Mockito
+                .when(bookingRepository.getAllByOwner(Mockito.anyInt(), Mockito.any(Pageable.class)))
+                .thenReturn(page);
+
+        List<BookingDto> listResult =
+                (List<BookingDto>) bookingService.findAllByOwner(2, StatusDto.ALL, 0, 10);
         Mockito
                 .when(bookingMapper.toStatus(Mockito.any(StatusDto.class)))
                 .thenReturn(Status.WAITING);
@@ -258,13 +460,32 @@ public class ServiceUnitTest {
                 .thenReturn(page);
         listResult = (List<BookingDto>) bookingService.findAllByOwner(2, StatusDto.WAITING, 0, 10);
         Assertions.assertEquals(listResult, list);
+    }
 
+    @Test
+    public void findAllStatesBookingsByOwnerTest4() {
+        List<BookingDto> list = List.of(bookingDto1, bookingDto2);
+        List<Booking> list1 = List.of(booking1, booking2);
+        Pageable pageable = PageRequest.of(0, 2);
+        Page<Booking> page = new PageImpl<>(list1, pageable, list1.size());
         Mockito
-                .when(bookingRepository.getByOwnerFuture(Mockito.anyInt(),
-                        Mockito.any(LocalDateTime.class), Mockito.any(Pageable.class)))
+                .when(userRepository.findById(Mockito.anyInt()))
+                .thenReturn(Optional.of(user2));
+        Mockito
+                .when(itemRepository.findById(Mockito.anyInt()))
+                .thenReturn(Optional.of(item));
+        Mockito
+                .when(bookingMapper.toDto(booking1, item, user2))
+                .thenReturn(bookingDto1);
+        Mockito
+                .when(bookingMapper.toDto(booking2, item, user2))
+                .thenReturn(bookingDto2);
+        Mockito
+                .when(bookingRepository.getAllByOwner(Mockito.anyInt(), Mockito.any(Pageable.class)))
                 .thenReturn(page);
-        listResult = (List<BookingDto>) bookingService.findAllByOwner(2, StatusDto.FUTURE, 0, 10);
-        Assertions.assertEquals(listResult, list);
+
+        List<BookingDto> listResult =
+                (List<BookingDto>) bookingService.findAllByOwner(2, StatusDto.ALL, 0, 10);
 
         Mockito
                 .when(bookingRepository.getByOwnerPast(Mockito.anyInt(),
@@ -272,12 +493,37 @@ public class ServiceUnitTest {
                 .thenReturn(page);
         listResult = (List<BookingDto>) bookingService.findAllByOwner(2, StatusDto.PAST, 0, 10);
         Assertions.assertEquals(listResult, list);
+    }
 
+    @Test
+    public void findAllStatesBookingsByOwnerTest5() {
+        List<BookingDto> list = List.of(bookingDto1, bookingDto2);
+        List<Booking> list1 = List.of(booking1, booking2);
+        Pageable pageable = PageRequest.of(0, 2);
+        Page<Booking> page = new PageImpl<>(list1, pageable, list1.size());
         Mockito
-                .when(bookingRepository.getByOwnerCurrent(Mockito.anyInt(),
+                .when(userRepository.findById(Mockito.anyInt()))
+                .thenReturn(Optional.of(user2));
+        Mockito
+                .when(itemRepository.findById(Mockito.anyInt()))
+                .thenReturn(Optional.of(item));
+        Mockito
+                .when(bookingMapper.toDto(booking1, item, user2))
+                .thenReturn(bookingDto1);
+        Mockito
+                .when(bookingMapper.toDto(booking2, item, user2))
+                .thenReturn(bookingDto2);
+        Mockito
+                .when(bookingRepository.getAllByOwner(Mockito.anyInt(), Mockito.any(Pageable.class)))
+                .thenReturn(page);
+
+        List<BookingDto> listResult =
+                (List<BookingDto>) bookingService.findAllByOwner(2, StatusDto.ALL, 0, 10);
+        Mockito
+                .when(bookingRepository.getByOwnerFuture(Mockito.anyInt(),
                         Mockito.any(LocalDateTime.class), Mockito.any(Pageable.class)))
                 .thenReturn(page);
-        listResult = (List<BookingDto>) bookingService.findAllByOwner(2, StatusDto.CURRENT, 0, 10);
+        listResult = (List<BookingDto>) bookingService.findAllByOwner(2, StatusDto.FUTURE, 0, 10);
         Assertions.assertEquals(listResult, list);
     }
 }

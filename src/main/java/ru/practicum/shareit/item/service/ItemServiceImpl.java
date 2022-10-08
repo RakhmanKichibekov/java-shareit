@@ -39,7 +39,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public Item add(Item item) {
-        validation(item);
+        CheckContentItem(item);
 
         log.info("добавлена вещь /{}/", item);
         return itemRepository.save(item);
@@ -47,7 +47,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public Item update(Item item, Integer userId) {
-        validation2(item, userId);
+        CheckContentItemWithId(item, userId);
         Item itemUpd = itemRepository.findById(item.getId()).orElseThrow();
         if (item.getName() != null) {
             itemUpd.setName(item.getName());
@@ -165,7 +165,7 @@ public class ItemServiceImpl implements ItemService {
         return userRepository.findById(id).orElseThrow();
     }
 
-    private void validation(Item item) {
+    private void CheckContentItem(Item item) {
         if (item.getName().isEmpty() || item.getAvailable() == null || item.getDescription() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
@@ -174,7 +174,7 @@ public class ItemServiceImpl implements ItemService {
         }
     }
 
-    private void validation2(Item item,Integer userId){
+    private void CheckContentItemWithId(Item item, Integer userId){
         if (itemRepository.findById(item.getId()).isEmpty() || userRepository.findById(userId).isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         }
