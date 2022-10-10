@@ -1,33 +1,44 @@
 package ru.practicum.shareit.item.dto;
 
-import lombok.AllArgsConstructor;
+import org.springframework.stereotype.Service;
 import ru.practicum.shareit.item.model.Item;
 
-import javax.validation.constraints.NotNull;
-
-
-@AllArgsConstructor
+@Service
 public class ItemMapper {
+    public ItemDto toDto(Item item) {
+        ItemDto itemDto = new ItemDto();
 
-    public static ItemDto toItemDto(@NotNull Item item) {
-        return new ItemDto(
-                item.getId(),
-                item.getName(),
-                item.getDescription(),
-                item.getAvailable(),
-                item.getOwner(),
-                item.getRequest()
-        );
+        itemDto.setId(item.getId());
+
+        itemDto.setName(item.getName());
+
+        itemDto.setDescription(item.getDescription());
+
+        itemDto.setAvailable(item.getAvailable());
+
+        itemDto.setOwner(item.getOwner());
+
+        itemDto.setRequestId(item.getRequestId());
+
+
+        return itemDto;
     }
 
-    public static Item toItem(@NotNull ItemDto itemDto) {
-        return new Item(
-                itemDto.getId(),
-                itemDto.getName(),
-                itemDto.getDescription(),
-                itemDto.getAvailable(),
-                itemDto.getOwner(),
-                itemDto.getRequest()
-        );
+    public Item toItem(ItemDto itemDto, Integer ownerId, Integer id) {
+        Item item = new Item();
+
+        item.setId(id);
+
+        item.setName(itemDto.getName());
+
+        item.setDescription(itemDto.getDescription());
+
+        item.setAvailable(itemDto.getAvailable());
+
+        item.setOwner(ownerId);
+
+        item.setRequestId(itemDto.getRequestId());
+
+        return item;
     }
 }

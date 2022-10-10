@@ -1,22 +1,24 @@
 package ru.practicum.shareit.item.repository;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import ru.practicum.shareit.item.model.Item;
 
-import java.util.List;
-import java.util.Map;
+import java.util.Set;
 
-public interface ItemRepository {
-    Map<Integer, Item> getRepository();
+public interface ItemRepository extends JpaRepository<Item, Integer> {
 
-    List<Item> findAllByUserId(Integer userId);
+    @Query("select o from Item o where (upper(o.name) like upper(concat('%',?1,'%')) "
+            + "or upper(o.description) like upper(concat('%',?1,'%'))) and o.available=true")
+    Page<Item> findByNameOrDesc(String text, Pageable pageable);
 
-    Item findById(Integer id);
+    Page<Item> findAllByOwnerOrderById(Integer owner, Pageable pageable);
 
-    List<Item> search(String text);
+    Set<Item> findByRequestId(Integer requestId);
 
-    Item add(Item item);
+    @Query(value = "select last_value from items_id_seq", nativeQuery = true)
+    Integer findLastValue();
 
-    Item change(Item item);
-
-    Item deleteById(Integer id);
 }

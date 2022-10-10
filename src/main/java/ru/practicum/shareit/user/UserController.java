@@ -1,52 +1,55 @@
 package ru.practicum.shareit.user;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.user.dto.UserDto;
+import ru.practicum.shareit.user.dto.UserMapper;
+import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.service.UserService;
 
 import javax.validation.Valid;
-import java.util.List;
+import java.util.Collection;
 
-import static org.springframework.http.HttpStatus.CREATED;
-import static org.springframework.http.HttpStatus.OK;
-
-@Slf4j
-@RequiredArgsConstructor
 @RestController
 @RequestMapping(path = "/users")
 public class UserController {
+    private final UserService userServiceImpl;
 
-    private final UserService userService;
+    private final UserMapper userMapper;
 
-    @GetMapping
-    @ResponseStatus(OK)
-    public List<UserDto> findAll() {
-        return userService.findAll();
+    public UserController(UserService userServiceImpl, UserMapper userMapper) {
+        this.userServiceImpl = userServiceImpl;
+        this.userMapper = userMapper;
     }
 
     @GetMapping("/{id}")
-    @ResponseStatus(OK)
-    public UserDto findById(@PathVariable(value = "id") Integer id) {
-        return userService.findById(id);
+    public UserDto getById(@PathVariable Integer id) {
+        return userMapper.toDto(userServiceImpl.getById(id));
+    }
+
+    @GetMapping
+    public Collection<UserDto> getAll(){
+        return userMapper.getAll(userServiceImpl, userMapper);
     }
 
     @PostMapping
-    @ResponseStatus(CREATED)
     public UserDto add(@Valid @RequestBody UserDto userDto) {
-        return userService.add(userDto);
+        User user = userMapper.toUser(userDto);
+        return userMapper.toDto(userServiceImpl.add(user));
     }
 
     @PatchMapping("/{id}")
-    public UserDto change(@PathVariable(value = "id") Integer id, @RequestBody UserDto userDto) {
-        log.debug("Изменение пользователя : \n{}", userDto.getId());
-        return userService.change(id, userDto);
+    public UserDto update(@RequestBody UserDto userDto, @PathVariable Integer id) {
+        User user = userMapper.toUser(userDto);
+        return userMapper.toDto(userServiceImpl.update(user, id));
     }
 
     @DeleteMapping("/{id}")
-    public UserDto deleteById(@PathVariable(value = "id") Integer id) {
-        log.debug("Удаление пользователя {}", id);
-        return userService.deleteById(id);
+    public void delete(@PathVariable Integer id) {
+        userServiceImpl.delete(id);
+    }
+
+    @DeleteMapping
+    public void deleteAll(UserService userServiceImpl) {
+        userMapper.deleteAll(userServiceImpl);
     }
 
 }

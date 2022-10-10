@@ -2,108 +2,184 @@ package ru.practicum.shareit.item.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import ru.practicum.shareit.item.exception.AccessIsDeniedException;
-import ru.practicum.shareit.item.exception.ItemNotFoundException;
-import ru.practicum.shareit.item.repository.ItemRepository;
-import ru.practicum.shareit.item.dto.ItemDto;
-import ru.practicum.shareit.item.dto.ItemMapper;
+import org.springframework.web.server.ResponseStatusException;
+
+
+import ru.practicum.shareit.booking.model.Booking;
+import ru.practicum.shareit.booking.repository.BookingRepository;
+import ru.practicum.shareit.item.dto.CommentDto;
+import ru.practicum.shareit.item.dto.CommentMapper;
+import ru.practicum.shareit.item.dto.ItemDtoDate;
+import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.user.exception.UserNotFoundException;
-import ru.practicum.shareit.user.service.UserService;
+import ru.practicum.shareit.item.repository.CommentRepository;
+import ru.practicum.shareit.item.repository.ItemRepository;
+import ru.practicum.shareit.user.model.User;
+import ru.practicum.shareit.user.repository.UserRepository;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.time.LocalDateTime;
+import java.util.*;
 
-@Service
 @Slf4j
+@Service
 @RequiredArgsConstructor
 public class ItemServiceImpl implements ItemService {
 
     private final ItemRepository itemRepository;
-    private final UserService userService;
+    private final UserRepository userRepository;
 
+    private final BookingRepository bookingRepository;
+
+    private final CommentRepository commentRepository;
+
+    private final CommentMapper commentMapper;
 
     @Override
-    public List<ItemDto> findAllByUserId(Integer userId) {
-        validateId(userId);
-        List<ItemDto> list = new ArrayList<>();
-        for (Item item : itemRepository.findAllByUserId(userId)) {
-            list.add(ItemMapper.toItemDto(item));
+    public Item add(Item item) {
+        checkContentItem(item);
+
+        log.info("добавлена вещь /{}/", item);
+        return itemRepository.save(item);
+    }
+
+    @Override
+    public Item update(Item item, Integer userId) {
+        checkContentItemWithId(item, userId);
+        Item itemUpd = itemRepository.findById(item.getId()).orElseThrow();
+        if (item.getName() != null) {
+            itemUpd.setName(item.getName());
         }
+        if (item.getDescription() != null) {
+            itemUpd.setDescription(item.getDescription());
+        }
+        if (item.getAvailable() != null) {
+            itemUpd.setAvailable(item.getAvailable());
+        }
+        if (item.getRequestId() != null) {
+            itemUpd.setRequestId(item.getRequestId());
+        }
+        log.info("обновлена вещь newValue=/{}/", itemUpd);
+        return itemRepository.save(itemUpd);
+    }
+
+    @Override
+    public Item getById(Integer id) {
+        log.info("запрошена вещь id={}", id);
+        return itemRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+    }
+
+    @Override
+    public Collection<Item> getByNameOrDesc(String text, Integer page, Integer size) {
+        if (text.equals("")) {
+            return new ArrayList<Item>();
+        }
+        List<Item> listSearch =
+                itemRepository.findByNameOrDesc(text, PageRequest.of(page, size)).toList();
+        log.info("запрошен поиск по строке /{}/ ,найдено /{}/", text, listSearch.size());
+        return listSearch;
+    }
+
+    @Override
+    public Collection<ItemDtoDate> getAll(Integer userId, Integer page, Integer size) {
+        ArrayList<ItemDtoDate> list = new ArrayList<>();
+        for (Item item : itemRepository.findAllByOwnerOrderById(userId, PageRequest.of(page, size)).toList()) {
+            Booking bookingLast = bookingRepository.getLastBooking(item.getId(), LocalDateTime.now());
+            Booking bookNext = bookingRepository.getNextBooking(item.getId(), LocalDateTime.now());
+            ItemDtoDate itemDtoDate = new ItemDtoDate();
+            itemDtoDate.setId(item.getId());
+            itemDtoDate.setName(item.getName());
+            itemDtoDate.setDescription(item.getDescription());
+            itemDtoDate.setAvailable(item.getAvailable());
+            itemDtoDate.setOwner(item.getOwner());
+            itemDtoDate.setLastBooking(bookingLast);
+            itemDtoDate.setNextBooking(bookNext);
+            list.add(itemDtoDate);
+        }
+        log.info("запрошены вещи владельца /{}/", userId);
         return list;
     }
 
     @Override
-    public ItemDto findById(Integer id) {
-        if (!itemRepository.getRepository().containsKey(id)) {
-            log.warn("Вещь с идентификатором {} не найдена.", id);
-            throw new ItemNotFoundException("Вещь с id " + id + " не найдена.");
-        }
-        return ItemMapper.toItemDto(itemRepository.findById(id));
+    public void delete(Integer itemId, Integer userId) {
+        itemRepository.deleteById(itemId);
     }
 
     @Override
-    public List<ItemDto> search(String text) {
-        List<ItemDto> list = new ArrayList<>();
-        if (!text.isBlank()) {
-            for (Item item : itemRepository.search(text)) {
-                list.add(ItemMapper.toItemDto(item));
+    public ItemDtoDate getItemDate(Integer itemId, LocalDateTime dateTime, Integer userId) {
+        Item item = itemRepository.findById(itemId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        Booking bookingLast = bookingRepository.getLastBooking(itemId, dateTime);
+        Booking bookingNext = bookingRepository.getNextBooking(itemId, dateTime);
+        Set<Comment> comments = commentRepository.findAllByItem(itemId);
+        Set<CommentDto> commentsDto = new HashSet<>();
+        for (Comment comment : comments) {
+            User user = userRepository.findById(bookingLast.getBookerId()).orElseThrow();
+            commentsDto.add(commentMapper.toDto(comment, user));
+        }
+        ItemDtoDate itemDtoDate = new ItemDtoDate();
+        itemDtoDate.setId(itemId);
+        itemDtoDate.setName(item.getName());
+        itemDtoDate.setDescription(item.getDescription());
+        itemDtoDate.setAvailable(item.getAvailable());
+        itemDtoDate.setOwner(item.getOwner());
+        if (item.getOwner().equals(userId)) {
+            itemDtoDate.setLastBooking(bookingLast);
+            itemDtoDate.setNextBooking(bookingNext);
+        }
+        if (comments.size() > 0) {
+            itemDtoDate.setComments(commentsDto);
+        }
+        log.info("запрошена вещь /{}/", itemDtoDate);
+        return itemDtoDate;
+    }
+
+    @Override
+    public CommentDto addComment(CommentDto commentDto, Integer itemId, Integer userId) {
+
+        Comment comment = commentMapper.toComment(commentDto);
+        comment.setItem(itemId);
+        comment.setAuthor(userId);
+        User user = getUser(userId);
+        log.info("Before findBooking>>>>>>>>>>>> comment= {} , ====user= {}", commentDto, user);
+        Collection<Booking> bookings =
+                bookingRepository.getByBookerAndItem(comment.getAuthor(), comment.getItem());
+        for (Booking booking : bookings) {
+            log.info("booking >>>>>>>>> = {}", booking);
+            if (booking != null && booking.getEnd().isBefore(LocalDateTime.now())
+                    && !comment.getText().equals("")) {
+                log.info("добавлен отзыв /{}/", comment);
+                commentRepository.save(comment);
+                return commentMapper.toDto(comment, user);
             }
         }
-        return list;
+
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+
     }
 
     @Override
-    public ItemDto add(Integer userId, ItemDto itemDto) {
-        validateId(userId);
-        itemDto.setOwner(userId);
-        return ItemMapper.toItemDto(itemRepository.add(ItemMapper.toItem(itemDto)));
+    public User getUser(Integer id) {
+        return userRepository.findById(id).orElseThrow();
     }
 
-    @Override
-    public ItemDto change(Integer userId, Integer itemId, ItemDto itemDto) {
-        validate(userId, itemId);
-        ItemDto oldItem = ItemMapper.toItemDto(itemRepository.getRepository().get(itemId));
-        itemDto.setId(itemId);
-        itemDto.setOwner(oldItem.getOwner());
-        if (itemDto.getName() == null) {
-            itemDto.setName(oldItem.getName());
+    private void checkContentItem(Item item) {
+        if (item.getName().isEmpty() || item.getAvailable() == null || item.getDescription() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
-        if (itemDto.getDescription() == null) {
-            itemDto.setDescription(oldItem.getDescription());
-        }
-        if (itemDto.getAvailable() == null) {
-            itemDto.setAvailable(oldItem.getAvailable());
-        }
-        return ItemMapper.toItemDto(itemRepository.change(ItemMapper.toItem(itemDto)));
-    }
-
-    @Override
-    public ItemDto deleteById(Integer userId, Integer id) {
-        validate(userId, id);
-        return ItemMapper.toItemDto(itemRepository.deleteById(id));
-    }
-
-    private void validate(Integer userId, Integer id) {
-        if (userService.findById(userId) == null) {
-            log.warn("Пользователь с идентификатором {} не найден.", userId);
-            throw new UserNotFoundException("Пользователь с id " + userId + " не найден");
-        }
-        if (!itemRepository.getRepository().containsKey(id)) {
-            log.warn("Вещь с идентификатором {} не найдена.", id);
-            throw new ItemNotFoundException("Вещь с id " + id + " не найдена.");
-        }
-        if (!userId.equals(findById(id).getOwner())) {
-            log.warn("Редактирование вещи с id {} пользователем с id {}", id, userId);
-            throw new AccessIsDeniedException("Недостаточно прав для выполнения операции.");
+        if (userRepository.findById(item.getOwner()).isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         }
     }
 
-    private void validateId(Integer userId) {
-        if (userService.findById(userId) == null) {
-            log.warn("Пользователь с идентификатором {} не найден.", userId);
-            throw new UserNotFoundException("Пользователь с id " + userId + " не найден");
+    private void checkContentItemWithId(Item item, Integer userId){
+        if (itemRepository.findById(item.getId()).isEmpty() || userRepository.findById(userId).isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        }
+        if (!itemRepository.findById(item.getId()).orElseThrow().getOwner().equals(userId)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         }
     }
 }
