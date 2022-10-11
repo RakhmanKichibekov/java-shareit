@@ -7,8 +7,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.DefaultUriBuilderFactory;
+import ru.practicum.shareit.client.BaseClient;
 
-import java.ru.practicum.shareit.client.BaseClient;
 import java.util.Map;
 
 @Service
@@ -25,7 +25,7 @@ public class RequestClient extends BaseClient {
         );
     }
 
-    public ResponseEntity<Object> create(Long userId, RequestDto requestDto) {
+    public ResponseEntity<Object> create(Long userId, java.ru.practicum.shareit.request.RequestDto requestDto) {
         return post("", userId, requestDto);
     }
 

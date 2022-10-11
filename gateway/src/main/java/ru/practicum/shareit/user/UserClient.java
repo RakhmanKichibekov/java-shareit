@@ -7,8 +7,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.DefaultUriBuilderFactory;
+import ru.practicum.shareit.client.BaseClient;
 
-import java.ru.practicum.shareit.client.BaseClient;
+import javax.validation.Valid;
 
 @Service
 public class UserClient extends BaseClient {
@@ -24,7 +25,7 @@ public class UserClient extends BaseClient {
         );
     }
 
-    public ResponseEntity<Object> create(UserDto userDto) {
+    public ResponseEntity<Object> create(@Valid UserDto userDto) {
         return post("", userDto);
     }
 
