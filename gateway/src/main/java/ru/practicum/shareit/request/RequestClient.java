@@ -1,4 +1,4 @@
-package java.ru.practicum.shareit.request;
+package ru.practicum.shareit.request;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,7 +25,7 @@ public class RequestClient extends BaseClient {
         );
     }
 
-    public ResponseEntity<Object> create(Long userId, java.ru.practicum.shareit.request.RequestDto requestDto) {
+    public ResponseEntity<Object> create(Long userId, ru.practicum.shareit.request.RequestDto requestDto) {
         return post("", userId, requestDto);
     }
 

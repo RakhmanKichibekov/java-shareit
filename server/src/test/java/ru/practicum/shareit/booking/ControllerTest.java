@@ -34,7 +34,7 @@ public class ControllerTest {
     private BookingService bookingService;
 
     @InjectMocks
-    private BookingController bookingController;
+    private BookingController1 bookingController;
 
     private final BookingMapper bookingMapper = new BookingMapper();
 

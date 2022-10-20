@@ -1,4 +1,4 @@
-package java.ru.practicum.shareit.request;
+package ru.practicum.shareit.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

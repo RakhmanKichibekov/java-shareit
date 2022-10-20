@@ -1,4 +1,4 @@
-package java.ru.practicum.shareit.user;
+package ru.practicum.shareit.user;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,7 +14,7 @@ import javax.validation.Valid;
 @RequiredArgsConstructor
 @Slf4j
 @Validated
-public class UserController {
+public class UserController1 {
     private final UserClient userClient;
 
     @PostMapping
